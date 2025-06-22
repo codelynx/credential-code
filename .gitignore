@@ -90,3 +90,4 @@ iOSInjectionProject/
 .DS_Store
 # Credential Code
 .credential-code/credentials.key
+Generated/
