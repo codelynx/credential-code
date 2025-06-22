@@ -89,5 +89,9 @@ iOSInjectionProject/
 # macOS
 .DS_Store
 # Credential Code
-.credential-code/credentials.key
+.credential-code/
 Generated/
+
+# Test files
+test-credentials
+*.test

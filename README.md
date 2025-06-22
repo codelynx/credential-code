@@ -11,11 +11,14 @@
 
 **Stop hardcoding secrets.** Credential Code encrypts your credentials at build time, generating source code with encrypted data that's safe to commit. Your secrets are only decrypted in memory at runtime.
 
-```
-┌─────────────────┐     ┌──────────────┐     ┌─────────────────┐     ┌─────────────┐
-│ credentials.json│ --> │credential-code│ --> │ Encrypted Code │ --> │  Your App  │
-│  (plain text)   │     │  (generate)   │     │(safe to commit)│     │ (runtime)  │
-└─────────────────┘     └──────────────┘     └─────────────────┘     └─────────────┘
+```mermaid
+graph LR
+    A[credentials.json<br/>plain text] -->|credential-code<br/>generate| B[Encrypted Code<br/>safe to commit]
+    B -->|Your App<br/>runtime| C[Decrypted<br/>in memory]
+    
+    style A fill:#ffcccc
+    style B fill:#ccffcc
+    style C fill:#ccccff
 ```
 
 ### ✨ Key Benefits
