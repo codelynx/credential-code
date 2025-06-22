@@ -18,14 +18,10 @@ Credential Code is a Swift-based command-line tool that securely manages sensiti
 1. **CLI Tool** (`credential-code`) - Written in Swift
    - `init` command: Creates credentials infrastructure
    - `generate` command: Processes credentials and generates code for target language
-   - `add` command: Add new credentials
-   - `list` command: List existing credentials (keys only, not values)
-   - `remove` command: Remove credentials
 
 2. **Credentials Storage**
-   - `credentials.json`: Stores encrypted credential data
-   - `credentials.key`: Encryption key file (should be in .gitignore)
-   - Both files stored in `.credential-code/` directory
+   - `credentials.json`: Stores credentials in plain text (should be in .gitignore)
+   - Stored in `.credential-code/` directory
 
 3. **Generated Code** (Language-specific)
    - Auto-generated file containing encrypted byte arrays
@@ -40,16 +36,12 @@ Credential Code is a Swift-based command-line tool that securely manages sensiti
    credential-code init
    ```
    - Creates `.credential-code/` directory
-   - Generates encryption key (`credentials.key`)
-   - Creates empty `credentials.json`
-   - Adds entries to `.gitignore`
+   - Creates example `credentials.json` with placeholder values
+   - Adds `.credential-code/` to `.gitignore`
 
 2. **Adding Credentials**
-   ```bash
-   credential-code add API_KEY "your-secret-key"
-   ```
-   - Encrypts the value using `credentials.key`
-   - Stores encrypted data in `credentials.json`
+   - Directly edit `.credential-code/credentials.json`
+   - Add credentials as plain text key-value pairs
 
 3. **Code Generation**
    ```bash
@@ -57,8 +49,9 @@ Credential Code is a Swift-based command-line tool that securely manages sensiti
    credential-code generate --language java --output src/main/java/Credentials.java
    credential-code generate --language swift  # default
    ```
-   - Reads `credentials.json` and `credentials.key`
-   - Generates language-specific code with encrypted byte arrays
+   - Reads plain text `credentials.json`
+   - Generates a random encryption key for this build
+   - Encrypts credentials and generates language-specific code with encrypted byte arrays
    - Includes runtime decryption logic for the target language
 
 4. **Usage in Client Code**
@@ -107,10 +100,10 @@ struct Credentials {
 
 ### Security Considerations
 
-1. **Key Management**
-   - `credentials.key` must never be committed to version control
-   - Should be stored securely (environment variable, CI/CD secrets, etc.)
-   - Different keys for different environments (dev, staging, prod)
+1. **Credential Management**
+   - `.credential-code/` directory must never be committed to version control
+   - Plain text credentials are only for development
+   - Each build generates a unique encryption key
 
 2. **Build-time Security**
    - Credentials are only decrypted during code generation
@@ -130,11 +123,11 @@ struct Credentials {
 - [ ] Simple encryption/decryption
 - [ ] Basic code generation
 
-### Phase 2: Credential Management
-- [ ] `add`, `list`, `remove` commands
-- [ ] Credential validation
-- [ ] Update existing credentials
-- [ ] Import/export functionality
+### Phase 2: Multi-Language Support
+- [x] Kotlin code generator
+- [x] Java code generator  
+- [x] Python code generator
+- [x] C++ code generator
 
 ### Phase 3: Advanced Features
 - [ ] Multiple environment support
@@ -220,17 +213,6 @@ After running `credential-code init` and adding credentials:
 }
 ```
 
-**.credential-code/credentials.key**
-```
-sKYw5rJP5LYe6GuUYmKRpF2c7x9TdGwA3fK8hBxCnWQ=
-```
-
-**Note on Encryption Format**: The encrypted values in `credentials.json` are actually AES-GCM sealed boxes that contain:
-- The encrypted data
-- A 12-byte nonce (IV)
-- A 16-byte authentication tag
-
-These are concatenated and Base64 encoded as a single value. During the `generate` command, they are parsed and separated for use in the generated code. This keeps the JSON file simple while maintaining cryptographic security.
 
 #### 2. Running Generate Command
 ```bash
@@ -238,10 +220,10 @@ credential-code generate
 ```
 
 The command performs these steps:
-1. Reads the encryption key from `credentials.key`
-2. Reads all encrypted credentials from `credentials.json`
-3. Re-encrypts each credential with a new runtime key embedded in the code
-4. Generates Swift source code with the encrypted data
+1. Reads the plain text credentials from `credentials.json`
+2. Generates a random encryption key for this build
+3. Encrypts each credential with the generated key
+4. Generates Swift source code with the encrypted data and obfuscated key
 
 #### 3. Generated Output
 

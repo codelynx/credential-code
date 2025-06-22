@@ -9,9 +9,6 @@ struct CredentialCode: ParsableCommand {
         version: "0.1.0",
         subcommands: [
             InitCommand.self,
-            AddCommand.self,
-            ListCommand.self,
-            RemoveCommand.self,
             GenerateCommand.self
         ]
     )

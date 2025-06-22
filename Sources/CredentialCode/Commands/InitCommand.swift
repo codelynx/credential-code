@@ -22,23 +22,25 @@ struct InitCommand: ParsableCommand {
         
         try fileManager.createDirectory(at: credentialDir, withIntermediateDirectories: true)
         
-        // Generate encryption key
-        let key = generateEncryptionKey()
-        let keyFile = credentialDir.appendingPathComponent("credentials.key")
-        try key.write(to: keyFile)
-        
-        // Create empty credentials.json
-        let credentials: [String: String] = [:]
-        let credentialsData = try JSONEncoder().encode(["credentials": credentials])
+        // Create empty credentials.json with example
+        let credentialsExample = """
+        {
+          "credentials": {
+            "API_KEY": "your-api-key-here",
+            "DATABASE_PASSWORD": "your-password-here"
+          }
+        }
+        """
         let credentialsFile = credentialDir.appendingPathComponent("credentials.json")
-        try credentialsData.write(to: credentialsFile)
+        try credentialsExample.write(to: credentialsFile, atomically: true, encoding: .utf8)
         
         // Update .gitignore
         try updateGitignore()
         
         print("✅ Initialized credential storage in \(credentialDir.path)")
-        print("⚠️  Added .credential-code/credentials.key to .gitignore")
-        print("📝 You can now add credentials using: credential-code add <KEY> <VALUE>")
+        print("⚠️  Added .credential-code/ to .gitignore")
+        print("📝 Edit .credential-code/credentials.json to add your credentials")
+        print("🔐 Run 'credential-code generate' to create encrypted code")
     }
     
     private func generateEncryptionKey() -> Data {
@@ -51,13 +53,13 @@ struct InitCommand: ParsableCommand {
         let gitignorePath = URL(fileURLWithPath: path).appendingPathComponent(".gitignore")
         let gitignoreEntries = [
             "\n# Credential Code",
-            ".credential-code/credentials.key",
+            ".credential-code/",
             ""
         ].joined(separator: "\n")
         
         if FileManager.default.fileExists(atPath: gitignorePath.path) {
             let existingContent = try String(contentsOf: gitignorePath, encoding: .utf8)
-            if !existingContent.contains(".credential-code/credentials.key") {
+            if !existingContent.contains(".credential-code/") {
                 try (existingContent + gitignoreEntries).write(to: gitignorePath, atomically: true, encoding: .utf8)
             }
         } else {

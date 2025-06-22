@@ -42,9 +42,8 @@ struct GenerateCommand: ParsableCommand {
             throw ExitCode.failure
         }
         
-        // Load credentials and key
+        // Load credentials (now in plain text)
         let credentialsFile = credentialDir.appendingPathComponent("credentials.json")
-        let keyFile = credentialDir.appendingPathComponent("credentials.key")
         
         let credentialsData = try Data(contentsOf: credentialsFile)
         let credentialsJson = try JSONSerialization.jsonObject(with: credentialsData) as? [String: Any] ?? [:]
@@ -55,12 +54,10 @@ struct GenerateCommand: ParsableCommand {
             return
         }
         
-        let keyData = try Data(contentsOf: keyFile)
-        let key64 = String(data: keyData, encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let keyBytes = Data(base64Encoded: key64) else {
-            print("Error: Invalid encryption key")
-            throw ExitCode.failure
-        }
+        // Generate a random encryption key for this build
+        var keyBytes = [UInt8](repeating: 0, count: 32) // 256 bits for AES-256
+        _ = SecRandomCopyBytes(kSecRandomDefault, keyBytes.count, &keyBytes)
+        let encryptionKey = Data(keyBytes)
         
         // Select code generator based on language
         let generator: CodeGenerator
@@ -81,7 +78,7 @@ struct GenerateCommand: ParsableCommand {
         }
         
         // Generate code
-        let generatedCode = try generator.generate(credentials: credentials, encryptionKey: keyBytes)
+        let generatedCode = try generator.generate(credentials: credentials, encryptionKey: encryptionKey)
         
         // Write to output file
         let outputPath = output ?? generator.defaultFileName

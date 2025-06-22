@@ -6,45 +6,24 @@ struct CppCodeGenerator: CodeGenerator {
     let defaultFileName = "Generated/credentials.cpp"
     
     func generate(credentials: [String: String], encryptionKey: Data) throws -> String {
-        // First, decrypt and re-encrypt all credentials with a new runtime key
-        let runtimeKey = SymmetricKey(size: .bits256)
+        // Use the provided encryption key as the runtime key
+        let runtimeKey = SymmetricKey(data: encryptionKey)
         var encryptedCredentials: [EncryptedCredential] = []
         
-        for (key, encryptedValue) in credentials {
-            // Decode the stored encrypted value
-            guard let combinedData = Data(base64Encoded: encryptedValue) else {
+        for (key, plainValue) in credentials {
+            // Convert plain text to data
+            guard let plaintext = plainValue.data(using: .utf8) else {
                 throw CredentialError.invalidEncryptedData
             }
             
-            // Extract nonce (12 bytes), ciphertext, and tag (16 bytes)
-            let nonceSize = 12
-            let tagSize = 16
-            
-            guard combinedData.count > nonceSize + tagSize else {
-                throw CredentialError.invalidEncryptedData
-            }
-            
-            let nonce = combinedData.prefix(nonceSize)
-            let ciphertext = combinedData.dropFirst(nonceSize).dropLast(tagSize)
-            let tag = combinedData.suffix(tagSize)
-            
-            // Decrypt with storage key
-            let storageKey = SymmetricKey(data: encryptionKey)
-            let sealedBox = try AES.GCM.SealedBox(
-                nonce: AES.GCM.Nonce(data: nonce),
-                ciphertext: ciphertext,
-                tag: tag
-            )
-            let plaintext = try AES.GCM.open(sealedBox, using: storageKey)
-            
-            // Re-encrypt with runtime key
-            let newSealedBox = try AES.GCM.seal(plaintext, using: runtimeKey)
+            // Encrypt with runtime key
+            let sealedBox = try AES.GCM.seal(plaintext, using: runtimeKey)
             
             encryptedCredentials.append(EncryptedCredential(
                 key: key,
-                encryptedData: newSealedBox.ciphertext,
-                nonce: newSealedBox.nonce.withUnsafeBytes { Data($0) },
-                tag: newSealedBox.tag
+                encryptedData: sealedBox.ciphertext,
+                nonce: sealedBox.nonce.withUnsafeBytes { Data($0) },
+                tag: sealedBox.tag
             ))
         }
         
@@ -52,7 +31,7 @@ struct CppCodeGenerator: CodeGenerator {
         let headerContent = generateCppHeader(credentials: encryptedCredentials)
         let implContent = generateCppImplementation(
             credentials: encryptedCredentials,
-            runtimeKey: runtimeKey.withUnsafeBytes { Data($0) }
+            runtimeKey: encryptionKey
         )
         
         // For now, return just the implementation (in real usage, we'd write both files)
