@@ -67,6 +67,14 @@ struct GenerateCommand: ParsableCommand {
         switch language {
         case .swift:
             generator = SwiftCodeGenerator()
+        case .kotlin:
+            generator = KotlinCodeGenerator()
+        case .java:
+            generator = JavaCodeGenerator()
+        case .python:
+            generator = PythonCodeGenerator()
+        case .cpp:
+            generator = CppCodeGenerator()
         default:
             print("Error: \(language.rawValue) language support not yet implemented.")
             throw ExitCode.failure
