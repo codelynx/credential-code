@@ -21,6 +21,14 @@ graph LR
     style C fill:#ccccff
 ```
 
+### ⚠️ IMPORTANT: Security Limitations
+
+**This tool is NOT suitable for open source projects.** The encryption key is embedded in the generated code (even in obfuscated form), which means anyone with access to the code can decrypt the credentials. Use this tool only for:
+- Private/proprietary applications
+- Internal company projects
+- Closed-source mobile apps
+- Server applications with restricted access
+
 ### ✨ Key Benefits
 
 - 🚫 **No secrets in source code** - Credentials never appear as strings in your binaries
@@ -28,6 +36,10 @@ graph LR
 - 🌍 **Multi-language support** - Works with Swift, Kotlin, Java, Python, and C++
 - 🛡️ **Type-safe access** - No magic strings, just compile-time checked enums
 - 📦 **Zero dependencies** - Generated code uses only standard crypto libraries
+
+## 📚 Documentation
+
+See the [Documentation Index](docs/README.md) for comprehensive guides and resources.
 
 ## 🚀 Quick Start
 
@@ -132,13 +144,41 @@ credential-code generate --language kotlin
 credential-code generate --language java --output src/main/java/Creds.java
 ```
 
+#### External Key Mode (New!)
+
+For enhanced security and deployment flexibility, use external key mode to separate encryption keys from your code:
+
+**Option 1: JSON Key File**
+```bash
+# Generate with external key file
+credential-code generate --external-key
+
+# Specify custom key file path
+credential-code generate --external-key --key-file path/to/key.json
+```
+
+**Option 2: Source Code Key**
+```bash
+# Generate with external key as source code
+credential-code generate --external-key-source
+
+# Specify custom output path
+credential-code generate --external-key-source --key-source-output Keys/MyKey.swift
+```
+
+Both options create two files:
+- **Encrypted credentials code**: Contains only encrypted data (safe to commit)
+- **Key file**: JSON or source code with decryption key (store separately, never commit)
+
+📖 **[See the complete External Key Usage Guide](docs/EXTERNAL_KEY_GUIDE.md)** for detailed instructions
+
 ### Language Examples
 
 #### Swift Example
 ```swift
 import Foundation
 
-// Decrypt a credential
+// Standard mode (embedded key)
 if let apiKey = Credentials.decrypt(.API_KEY) {
     let headers = ["Authorization": "Bearer \(apiKey)"]
     // Make API request...
@@ -146,6 +186,15 @@ if let apiKey = Credentials.decrypt(.API_KEY) {
 
 // With caching for frequently used credentials
 let dbUrl = Credentials.decryptCached(.DATABASE_URL)
+
+// External key mode
+// First, initialize with the key
+try Credentials.loadKey(from: "path/to/key.json")
+// Or with base64 key string
+try Credentials.initialize(with: "base64EncodedKey...")
+
+// Then access credentials
+let apiKey = try Credentials.get(.API_KEY)
 ```
 
 #### Kotlin Example
@@ -227,6 +276,7 @@ The demo:
 - **Obfuscated key storage** - Keys are split and reconstructed at runtime
 - **No string literals** - Credentials never appear as plain text in binaries
 - **Memory-only decryption** - Decrypted values exist only during use
+- **External key support** - Separate keys from code for enhanced security
 
 ### Best Practices
 
@@ -241,6 +291,7 @@ The demo:
 - Share credential files between developers
 - Log decrypted credential values
 - Store decrypted values longer than necessary
+- **Use this for open source projects** - Anyone with access to the code can decrypt credentials
 
 ## Installation
 
@@ -299,6 +350,37 @@ credential-code generate --output Generated/Credentials.prod.swift
 credential-code generate \
   --language python \
   --output src/config/secure_credentials.py
+```
+
+### External Key Management
+
+Use external keys for better security in production environments:
+
+```bash
+# Generate with external key
+credential-code generate --external-key --key-file keys/prod.key
+
+# Store key in environment variable (CI/CD)
+export CREDENTIAL_KEY=$(cat keys/prod.key | jq -r .key)
+```
+
+**Key Storage Options:**
+- **Environment Variables**: Best for CI/CD and containerized deployments
+- **Secret Management Systems**: AWS Secrets Manager, HashiCorp Vault, etc.
+- **Secure File Storage**: Encrypted volumes, HSMs
+- **Configuration Management**: Kubernetes Secrets, Docker Secrets
+
+**Example: AWS Secrets Manager Integration**
+```bash
+# Store key in AWS Secrets Manager
+aws secretsmanager create-secret \
+  --name prod/credential-key \
+  --secret-string file://keys/prod.key
+
+# Retrieve at runtime
+KEY=$(aws secretsmanager get-secret-value \
+  --secret-id prod/credential-key \
+  --query SecretString --output text)
 ```
 
 ## Troubleshooting

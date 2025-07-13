@@ -211,4 +211,12 @@ struct JavaCodeGenerator: CodeGenerator {
         
         return components
     }
+    
+    func generateWithExternalKey(credentials: [String: String], encryptionKey: Data) throws -> String {
+        throw CredentialError.notImplemented("External key generation is not yet implemented for Java")
+    }
+    
+    func generateKeySource(encryptionKey: Data) throws -> String {
+        throw CredentialError.notImplemented("Key source generation is not yet implemented for Java")
+    }
 }

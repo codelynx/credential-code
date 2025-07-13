@@ -13,6 +13,18 @@ struct GenerateCommand: ParsableCommand {
     @Option(name: .shortAndLong, help: "Output file path")
     var output: String?
     
+    @Flag(name: .long, help: "Generate with external key file (splits key from code)")
+    var externalKey = false
+    
+    @Option(name: .long, help: "Path for the external key file (only with --external-key)")
+    var keyFile: String?
+    
+    @Flag(name: .long, help: "Generate with external key as source code instead of JSON")
+    var externalKeySource = false
+    
+    @Option(name: .long, help: "Path for the external key source file (only with --external-key-source)")
+    var keySourceOutput: String?
+    
     enum Language: String, ExpressibleByArgument, CaseIterable {
         case swift
         case kotlin
@@ -77,7 +89,49 @@ struct GenerateCommand: ParsableCommand {
         }
         
         // Generate code
-        let generatedCode = try generator.generate(credentials: credentials, encryptionKey: encryptionKey)
+        let generatedCode: String
+        if externalKeySource {
+            // Generate code without embedded key (for source code key)
+            generatedCode = try generator.generateWithExternalKey(credentials: credentials, encryptionKey: encryptionKey)
+            
+            // Generate key source file
+            let keySourcePath = keySourceOutput ?? getDefaultKeySourcePath(for: language)
+            let keySourceURL = URL(fileURLWithPath: keySourcePath)
+            
+            // Create parent directory if needed
+            let keyParentDir = keySourceURL.deletingLastPathComponent()
+            if !FileManager.default.fileExists(atPath: keyParentDir.path) {
+                try FileManager.default.createDirectory(at: keyParentDir, withIntermediateDirectories: true)
+            }
+            
+            // Generate key source code
+            let keySourceCode = try generator.generateKeySource(encryptionKey: encryptionKey)
+            try keySourceCode.write(to: keySourceURL, atomically: true, encoding: .utf8)
+            
+            print("✅ Generated key source file: \(keySourcePath)")
+        } else if externalKey {
+            // Generate code without embedded key
+            generatedCode = try generator.generateWithExternalKey(credentials: credentials, encryptionKey: encryptionKey)
+            
+            // Save key to external file
+            let keyFilePath = keyFile ?? "credential-key.json"
+            let keyURL = URL(fileURLWithPath: keyFilePath)
+            
+            // Create key data structure
+            let keyData: [String: Any] = [
+                "version": "1.0",
+                "algorithm": "AES-256-GCM",
+                "key": encryptionKey.base64EncodedString()
+            ]
+            
+            let keyJSON = try JSONSerialization.data(withJSONObject: keyData, options: .prettyPrinted)
+            try keyJSON.write(to: keyURL)
+            
+            print("✅ Generated key file: \(keyFilePath)")
+        } else {
+            // Generate code with embedded key (existing behavior)
+            generatedCode = try generator.generate(credentials: credentials, encryptionKey: encryptionKey)
+        }
         
         // Write to output file
         let outputPath = output ?? generator.defaultFileName
@@ -92,5 +146,22 @@ struct GenerateCommand: ParsableCommand {
         try generatedCode.write(to: outputURL, atomically: true, encoding: .utf8)
         
         print("✅ Generated \(language.rawValue) code: \(outputPath)")
+    }
+    
+    private func getDefaultKeySourcePath(for language: Language) -> String {
+        switch language {
+        case .swift:
+            return "Generated/CredentialKey.swift"
+        case .kotlin:
+            return "Generated/CredentialKey.kt"
+        case .java:
+            return "Generated/CredentialKey.java"
+        case .python:
+            return "Generated/credential_key.py"
+        case .c:
+            return "Generated/credential_key.c"
+        case .cpp:
+            return "Generated/credential_key.cpp"
+        }
     }
 }

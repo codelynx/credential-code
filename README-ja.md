@@ -21,6 +21,14 @@ graph LR
     style C fill:#ccccff
 ```
 
+### ⚠️ 重要: セキュリティ上の制限
+
+**このツールはオープンソースプロジェクトには適していません。** 暗号化キーは（難読化されていても）生成されたコードに埋め込まれているため、コードにアクセスできる人は誰でも認証情報を復号化できます。以下の用途でのみ使用してください：
+- プライベート/プロプライエタリアプリケーション
+- 社内プロジェクト
+- クローズドソースのモバイルアプリ
+- アクセス制限されたサーバーアプリケーション
+
 ### ✨ 主な利点
 
 - 🚫 **ソースコードに秘密情報なし** - バイナリに認証情報が文字列として現れません
@@ -132,13 +140,31 @@ credential-code generate --language kotlin
 credential-code generate --language java --output src/main/java/Creds.java
 ```
 
+#### 外部キーモード（新機能！）
+
+セキュリティと配備の柔軟性を向上させるため、暗号化キーをコードから分離できます:
+
+```bash
+# 外部キーファイルで生成
+credential-code generate --external-key
+
+# カスタムキーファイルパスを指定
+credential-code generate --external-key --key-file path/to/key.json
+```
+
+これにより2つのファイルが作成されます:
+- **暗号化された認証情報コード**: 暗号化されたデータのみを含む（コミット可能）
+- **キーファイル**: 復号化キーを含む（別途保管、コミット不可）
+
+📖 **[外部キー使用ガイド（英語）](docs/EXTERNAL_KEY_GUIDE.md)** でcredential-key.jsonの詳細な使用方法をご覧ください
+
 ### 言語別の例
 
 #### Swift例
 ```swift
 import Foundation
 
-// 認証情報を復号化
+// 標準モード（埋め込みキー）
 if let apiKey = Credentials.decrypt(.API_KEY) {
     let headers = ["Authorization": "Bearer \(apiKey)"]
     // APIリクエストを実行...
@@ -146,6 +172,15 @@ if let apiKey = Credentials.decrypt(.API_KEY) {
 
 // 頻繁に使用する認証情報にはキャッシュを使用
 let dbUrl = Credentials.decryptCached(.DATABASE_URL)
+
+// 外部キーモード
+// まず、キーで初期化
+try Credentials.loadKey(from: "path/to/key.json")
+// またはbase64キー文字列で
+try Credentials.initialize(with: "base64EncodedKey...")
+
+// 次に認証情報にアクセス
+let apiKey = try Credentials.get(.API_KEY)
 ```
 
 #### Kotlin例
@@ -241,6 +276,7 @@ if (apiKey.has_value()) {
 - 開発者間で認証情報ファイルを共有
 - 復号化された認証情報値をログ出力
 - 必要以上に長く復号化された値を保存
+- **オープンソースプロジェクトで使用する** - コードにアクセスできる人は誰でも認証情報を復号化できます
 
 ## インストール
 

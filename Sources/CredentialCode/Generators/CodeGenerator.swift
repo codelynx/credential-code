@@ -5,6 +5,8 @@ protocol CodeGenerator {
     var defaultFileName: String { get }
     
     func generate(credentials: [String: String], encryptionKey: Data) throws -> String
+    func generateWithExternalKey(credentials: [String: String], encryptionKey: Data) throws -> String
+    func generateKeySource(encryptionKey: Data) throws -> String
 }
 
 struct EncryptedCredential {

@@ -4,6 +4,22 @@
 
 Credential Code implements a build-time encryption model that ensures credentials never appear as plain text in your compiled binaries while maintaining ease of use during development.
 
+### Suitable Use Cases
+
+✅ **Recommended for:**
+- Private/proprietary applications
+- Internal company tools
+- Closed-source mobile apps (iOS/Android)
+- Server applications with restricted binary access
+- Desktop applications distributed as compiled binaries
+
+❌ **NOT suitable for:**
+- Open source projects
+- Public GitHub repositories
+- Applications where source code is accessible to end users
+- Web applications where JavaScript source is visible
+- Any scenario where untrusted parties can access the generated code
+
 ## Threat Model
 
 ### What We Protect Against
@@ -25,12 +41,17 @@ Credential Code implements a build-time encryption model that ensures credential
 
 ### What We Don't Protect Against
 
-1. **Compromised Runtime Environment**
+1. **Open Source Projects**
+   - **CRITICAL**: Anyone with access to the generated code can decrypt credentials
+   - The encryption key is embedded in the code (even if obfuscated)
+   - This tool is NOT suitable for public repositories or open source projects
+
+2. **Compromised Runtime Environment**
    - If an attacker has runtime code execution, they can access decrypted values
    - Memory access attacks on running processes
    - Debugger attachment to production applications
 
-2. **Development Environment Compromise**
+3. **Development Environment Compromise**
    - If `.credential-code/credentials.json` is accessed
    - Developer machine compromise
    - Backup system breaches
@@ -57,6 +78,12 @@ Credential Code implements a build-time encryption model that ensures credential
    - Stored as separate array elements
    - Reconstructed at runtime
    - No single contiguous key in binary
+
+3. **External Key Mode (Recommended for Production)**
+   - Keys stored separately from code
+   - No embedded keys in binaries
+   - Better suited for key rotation
+   - Integration with key management systems
 
 ### Encryption Process
 
@@ -132,16 +159,57 @@ Plain Credential → AES-256-GCM → Ciphertext + Nonce + Tag → Base64 → Gen
    - Set up alerts for failed decryption attempts
    - Track credential usage
 
+## External Key Mode
+
+> 📖 **See the [External Key Usage Guide](EXTERNAL_KEY_GUIDE.md) for comprehensive documentation on this feature.**
+
+### Overview
+
+External key mode separates encryption keys from generated code, providing enhanced security for production environments:
+
+```bash
+# Generate with external key
+credential-code generate --external-key --key-file prod.key
+```
+
+### Security Benefits
+
+1. **Key Isolation**
+   - Keys never embedded in binaries
+   - Reduced attack surface
+   - Better compliance with security standards
+
+2. **Key Rotation**
+   - Update keys without rebuilding code
+   - Zero-downtime key rotation possible
+   - Audit trail for key changes
+
+3. **Access Control**
+   - Fine-grained permissions on key files
+   - Integration with IAM systems
+   - Separation of duties
+
+### Key Features
+
+External key mode provides:
+- Separate storage of encryption keys
+- Support for both JSON files and source code keys
+- Integration with secret management systems
+- Simplified key rotation
+
+For detailed implementation guides, deployment strategies, and best practices, see the [External Key Usage Guide](EXTERNAL_KEY_GUIDE.md).
+
 ## Comparison with Alternatives
 
 ### vs Environment Variables
 
-| Aspect | Credential Code | Environment Variables |
-|--------|----------------|---------------------|
-| Binary Analysis | Encrypted data only | May appear in strings |
-| Type Safety | Compile-time checked | Runtime strings |
-| Rotation | Rebuild required | Runtime update |
-| Cross-platform | Yes | Shell-dependent |
+| Aspect | Credential Code (Embedded) | Credential Code (External Key) | Environment Variables |
+|--------|---------------------------|-------------------------------|---------------------|
+| Binary Analysis | Encrypted data + obfuscated key | Encrypted data only | May appear in strings |
+| Type Safety | Compile-time checked | Compile-time checked | Runtime strings |
+| Rotation | Rebuild required | Key update only | Runtime update |
+| Cross-platform | Yes | Yes | Shell-dependent |
+| Key Management | Built-in | Flexible | Manual |
 
 ### vs Key Management Services
 

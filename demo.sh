@@ -73,6 +73,14 @@ echo -e "\n${YELLOW}C++:${NC}"
 $TOOL_PATH generate --language c++ --output cpp/credentials.cpp
 echo "  ✅ Generated cpp/credentials.cpp"
 
+# Demonstrate external key mode with source code
+echo -e "\n${BLUE}Step 3b: Generating with external key source (Swift example)...${NC}"
+mkdir -p swift-external
+$TOOL_PATH generate --language swift --output swift-external/Credentials.swift --external-key-source --key-source-output swift-external/CredentialKey.swift
+echo "  ✅ Generated swift-external/Credentials.swift (without embedded key)"
+echo "  ✅ Generated swift-external/CredentialKey.swift (key as source code)"
+echo -e "${YELLOW}  ⚠️  Note: Key source file should be stored securely and never committed!${NC}"
+
 # Create test programs for each language
 echo -e "\n${BLUE}Step 4: Creating test programs...${NC}"
 
@@ -229,6 +237,42 @@ int main() {
 }
 EOF
 
+# Swift external key test program
+cat > swift-external/test.swift << 'EOF'
+import Foundation
+
+@main
+struct TestExternalKeyCredentials {
+    static func main() {
+        print("🔐 Swift External Key Source Test")
+        print("=================================")
+        
+        do {
+            // No need to load key - it's provided by CredentialKeyProvider
+            print("✅ Using key from CredentialKeyProvider.swift")
+            
+            // Access credentials directly
+            let apiKey = try Credentials.get(.API_KEY)
+            print("✅ API_KEY: \(apiKey)")
+            
+            let dbUrl = try Credentials.get(.DATABASE_URL)
+            print("✅ DATABASE_URL: \(dbUrl)")
+            
+            // Test subscript access
+            if let jwtSecret = Credentials[.JWT_SECRET] {
+                print("✅ JWT_SECRET (subscript): \(jwtSecret)")
+            }
+            
+            print("\n✨ External key source mode working correctly!")
+            print("   Key is provided as source code.")
+            
+        } catch {
+            print("❌ Error: \(error)")
+        }
+    }
+}
+EOF
+
 # Create build scripts for compiled languages
 echo -e "\n${BLUE}Step 5: Creating build scripts...${NC}"
 
@@ -265,22 +309,26 @@ This directory contains example projects showing how to use `credential-code` wi
 ```
 demo-projects/
 ├── .credential-code/
-│   └── credentials.json    # Plain text credentials (git-ignored)
+│   └── credentials.json       # Plain text credentials (git-ignored)
 ├── swift/
-│   ├── Credentials.swift   # Generated encrypted code
-│   └── test.swift         # Example usage
+│   ├── Credentials.swift      # Generated encrypted code
+│   └── test.swift            # Example usage
+├── swift-external/           # External key source example
+│   ├── Credentials.swift     # Generated code (no embedded key)
+│   ├── CredentialKey.swift  # Key as source code
+│   └── test.swift           # Example usage with external key source
 ├── kotlin/
-│   ├── Credentials.kt     # Generated encrypted code
-│   └── Test.kt           # Example usage
+│   ├── Credentials.kt        # Generated encrypted code
+│   └── Test.kt              # Example usage
 ├── java/
-│   ├── Credentials.java   # Generated encrypted code
-│   └── Test.java         # Example usage
+│   ├── Credentials.java      # Generated encrypted code
+│   └── Test.java            # Example usage
 ├── python/
-│   ├── credentials.py     # Generated encrypted code
-│   └── test.py           # Example usage
+│   ├── credentials.py        # Generated encrypted code
+│   └── test.py              # Example usage
 └── cpp/
-    ├── credentials.cpp    # Generated encrypted code
-    └── test.cpp          # Example structure
+    ├── credentials.cpp       # Generated encrypted code
+    └── test.cpp             # Example structure
 ```
 
 ## Running the Examples
@@ -289,6 +337,13 @@ demo-projects/
 ```bash
 cd swift
 swiftc test.swift Credentials.swift -o test
+./test
+```
+
+### Swift with External Key Source
+```bash
+cd swift-external
+swiftc test.swift Credentials.swift CredentialKey.swift -o test
 ./test
 ```
 
@@ -342,6 +397,11 @@ if command -v swiftc &> /dev/null; then
     echo -e "\n${YELLOW}Running Swift test:${NC}"
     cd swift
     swiftc test.swift Credentials.swift -o test 2>/dev/null && ./test
+    cd ..
+    
+    echo -e "\n${YELLOW}Running Swift external key source test:${NC}"
+    cd swift-external
+    swiftc test.swift Credentials.swift CredentialKey.swift -o test 2>/dev/null && ./test
     cd ..
 else
     echo -e "\n${YELLOW}Swift compiler not found, skipping Swift test${NC}"

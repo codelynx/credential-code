@@ -92,6 +92,20 @@ iOSInjectionProject/
 .credential-code/
 Generated/
 
+# External key files - NEVER commit these!
+credential-key.json
+*.key.json
+*.key
+CredentialKey.swift
+**/CredentialKey.swift
+CredentialKey.kt
+CredentialKey.java
+credential_key.py
+credential_key.c
+credential_key.cpp
+
 # Test files
 test-credentials
 *.test
+test-external-key/
+test-external-key-source/

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- External key support with `--external-key` flag for enhanced security
+- `--key-file` option to specify custom key file path
+- External key as source code with `--external-key-source` flag
+- `--key-source-output` option to specify custom key source file path
+- New methods for Swift: `loadKey()`, `initialize()` for external key management
+- Support for separating encryption keys from generated code
+- Integration examples for AWS Secrets Manager and other key management systems
+- Clear security warnings about not using this tool for open source projects
+
 ### Changed
 - **BREAKING CHANGE**: Simplified JSON structure for `credentials.json`. The `"credentials"` wrapper object has been removed.
   

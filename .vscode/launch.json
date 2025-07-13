@@ -1,0 +1,22 @@
+{
+	"configurations": [
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:credential-code}",
+			"name": "Debug credential-code",
+			"program": "${workspaceFolder:credential-code}/.build/debug/credential-code",
+			"preLaunchTask": "swift: Build Debug credential-code"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:credential-code}",
+			"name": "Release credential-code",
+			"program": "${workspaceFolder:credential-code}/.build/release/credential-code",
+			"preLaunchTask": "swift: Build Release credential-code"
+		}
+	]
+}

@@ -7,22 +7,26 @@ This directory contains example projects showing how to use `credential-code` wi
 ```
 demo-projects/
 ├── .credential-code/
-│   └── credentials.json    # Plain text credentials (git-ignored)
+│   └── credentials.json       # Plain text credentials (git-ignored)
 ├── swift/
-│   ├── Credentials.swift   # Generated encrypted code
-│   └── test.swift         # Example usage
+│   ├── Credentials.swift      # Generated encrypted code
+│   └── test.swift            # Example usage
+├── swift-external/           # External key source example
+│   ├── Credentials.swift     # Generated code (no embedded key)
+│   ├── CredentialKey.swift  # Key as source code
+│   └── test.swift           # Example usage with external key source
 ├── kotlin/
-│   ├── Credentials.kt     # Generated encrypted code
-│   └── Test.kt           # Example usage
+│   ├── Credentials.kt        # Generated encrypted code
+│   └── Test.kt              # Example usage
 ├── java/
-│   ├── Credentials.java   # Generated encrypted code
-│   └── Test.java         # Example usage
+│   ├── Credentials.java      # Generated encrypted code
+│   └── Test.java            # Example usage
 ├── python/
-│   ├── credentials.py     # Generated encrypted code
-│   └── test.py           # Example usage
+│   ├── credentials.py        # Generated encrypted code
+│   └── test.py              # Example usage
 └── cpp/
-    ├── credentials.cpp    # Generated encrypted code
-    └── test.cpp          # Example structure
+    ├── credentials.cpp       # Generated encrypted code
+    └── test.cpp             # Example structure
 ```
 
 ## Running the Examples
@@ -31,6 +35,13 @@ demo-projects/
 ```bash
 cd swift
 swiftc test.swift Credentials.swift -o test
+./test
+```
+
+### Swift with External Key Source
+```bash
+cd swift-external
+swiftc test.swift Credentials.swift CredentialKey.swift -o test
 ./test
 ```
 
