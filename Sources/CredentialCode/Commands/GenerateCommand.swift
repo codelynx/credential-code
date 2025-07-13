@@ -46,8 +46,7 @@ struct GenerateCommand: ParsableCommand {
         let credentialsFile = credentialDir.appendingPathComponent("credentials.json")
         
         let credentialsData = try Data(contentsOf: credentialsFile)
-        let credentialsJson = try JSONSerialization.jsonObject(with: credentialsData) as? [String: Any] ?? [:]
-        let credentials = credentialsJson["credentials"] as? [String: String] ?? [:]
+        let credentials = try JSONSerialization.jsonObject(with: credentialsData) as? [String: String] ?? [:]
         
         if credentials.isEmpty {
             print("Warning: No credentials to generate.")

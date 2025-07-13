@@ -29,9 +29,7 @@ Edit `.credential-code/credentials.json`:
 
 ```json
 {
-  "credentials": {
-    "API_KEY": "sk-my-secret-api-key-123"
-  }
+  "API_KEY": "sk-my-secret-api-key-123"
 }
 ```
 
@@ -68,12 +66,10 @@ Your credential is now:
 
 ```json
 {
-  "credentials": {
-    "API_KEY": "sk-api-key",
-    "DATABASE_URL": "postgres://localhost/mydb",
-    "JWT_SECRET": "super-secret-jwt-key",
-    "STRIPE_KEY": "sk_test_123"
-  }
+  "API_KEY": "sk-api-key",
+  "DATABASE_URL": "postgres://localhost/mydb",
+  "JWT_SECRET": "super-secret-jwt-key",
+  "STRIPE_KEY": "sk_test_123"
 }
 ```
 

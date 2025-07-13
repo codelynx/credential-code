@@ -36,18 +36,16 @@ $TOOL_PATH init
 echo -e "\n${BLUE}Step 2: Adding fake credentials...${NC}"
 cat > .credential-code/credentials.json << EOF
 {
-  "credentials": {
-    "API_KEY": "sk-fake-1234567890abcdef",
-    "DATABASE_URL": "postgres://demo:pass123@localhost:5432/myapp",
-    "JWT_SECRET": "super-secret-jwt-key-for-demo",
-    "STRIPE_KEY": "sk_test_fake_stripe_key_123",
-    "AWS_SECRET_KEY": "fake-aws-secret-key-abcdef123456"
-  }
+  "API_KEY": "sk-fake-1234567890abcdef",
+  "DATABASE_URL": "postgres://demo:pass123@localhost:5432/myapp",
+  "JWT_SECRET": "super-secret-jwt-key-for-demo",
+  "STRIPE_KEY": "sk_test_fake_stripe_key_123",
+  "AWS_SECRET_KEY": "fake-aws-secret-key-abcdef123456"
 }
 EOF
 
 echo "Added fake credentials:"
-cat .credential-code/credentials.json | jq '.credentials | keys[]' | sed 's/"//g' | sed 's/^/  - /'
+cat .credential-code/credentials.json | jq 'keys[]' | sed 's/"//g' | sed 's/^/  - /'
 
 # Create directories for each language
 mkdir -p swift kotlin java python cpp

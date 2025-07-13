@@ -206,10 +206,8 @@ After running `credential-code init` and adding credentials:
 **.credential-code/credentials.json**
 ```json
 {
-  "credentials": {
-    "API_KEY": "YXNkZmFzZGZhc2RmYXNkZg==",
-    "DATABASE_PASSWORD": "cXdlcnR5dWlvcGFzZGZnaGo="
-  }
+  "API_KEY": "YXNkZmFzZGZhc2RmYXNkZg==",
+  "DATABASE_PASSWORD": "cXdlcnR5dWlvcGFzZGZnaGo="
 }
 ```
 

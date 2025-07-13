@@ -25,10 +25,8 @@ struct InitCommand: ParsableCommand {
         // Create empty credentials.json with example
         let credentialsExample = """
         {
-          "credentials": {
-            "API_KEY": "your-api-key-here",
-            "DATABASE_PASSWORD": "your-password-here"
-          }
+          "API_KEY": "your-api-key-here",
+          "DATABASE_PASSWORD": "your-password-here"
         }
         """
         let credentialsFile = credentialDir.appendingPathComponent("credentials.json")

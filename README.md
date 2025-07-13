@@ -53,10 +53,8 @@ credential-code init
 Edit `.credential-code/credentials.json`:
 ```json
 {
-  "credentials": {
-    "API_KEY": "sk-1234567890abcdef",
-    "DATABASE_URL": "postgres://user:pass@localhost/db"
-  }
+  "API_KEY": "sk-1234567890abcdef",
+  "DATABASE_URL": "postgres://user:pass@localhost/db"
 }
 ```
 
@@ -113,11 +111,9 @@ Edit `.credential-code/credentials.json`:
 
 ```json
 {
-  "credentials": {
-    "STRIPE_KEY": "sk_test_...",
-    "AWS_SECRET": "aws_secret_key_...",
-    "JWT_SECRET": "your-256-bit-secret"
-  }
+  "STRIPE_KEY": "sk_test_...",
+  "AWS_SECRET": "aws_secret_key_...",
+  "JWT_SECRET": "your-256-bit-secret"
 }
 ```
 
