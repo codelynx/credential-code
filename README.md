@@ -36,6 +36,7 @@ graph LR
 - 🌍 **Multi-language support** - Works with Swift, Kotlin, Java, Python, and C++
 - 🛡️ **Type-safe access** - No magic strings, just compile-time checked enums
 - 📦 **Zero dependencies** - Generated code uses only standard crypto libraries
+- 🔀 **Dual output formats** - Generate code for apps AND .creds files for backends
 
 ## 📚 Documentation
 
@@ -53,14 +54,14 @@ swift build -c release
 sudo cp .build/release/credential-code /usr/local/bin/
 ```
 
-### 2. Initialize your project
+### 2. Initialize Your Project
 
 ```bash
 cd your-project
 credential-code init
 ```
 
-### 3. Add your credentials
+### 3. Add Your Credentials
 
 Edit `.credential-code/credentials.json`:
 ```json
@@ -70,18 +71,24 @@ Edit `.credential-code/credentials.json`:
 }
 ```
 
-### 4. Generate encrypted code
+### 4. Generate Encrypted Code
 
 ```bash
 credential-code generate
+# This creates:
+# - Generated/Credentials.swift (encrypted credentials for apps)
+# - Generated/credentials.creds (encrypted credentials for backends)
+# - .credential-code/encryption-key.txt (encryption key)
 ```
 
-### 5. Use in your app
+### 5. Use in Your App
 
 ```swift
-if let apiKey = Credentials.decrypt(.API_KEY) {
-    // Use your API key securely
-}
+// Load the encryption key
+try Credentials.loadKey(from: ".credential-code/encryption-key.txt")
+
+// Access your credentials
+let apiKey = try Credentials.get(.API_KEY)
 ```
 
 ## 📚 Full Documentation
@@ -94,13 +101,15 @@ if let apiKey = Credentials.decrypt(.API_KEY) {
 
 ## Supported Languages
 
-| Language | File | Required Libraries | Example |
-|----------|------|-------------------|---------|
-| Swift | `Credentials.swift` | CryptoKit (built-in) | [View](#swift-example) |
-| Kotlin | `Credentials.kt` | javax.crypto (built-in) | [View](#kotlin-example) |
-| Java | `Credentials.java` | javax.crypto (built-in) | [View](#java-example) |
-| Python | `credentials.py` | [cryptography](https://pypi.org/project/cryptography/) | [View](#python-example) |
-| C++ | `credentials.cpp` | OpenSSL | [View](#c-example) |
+| Language | File | Required Libraries | External Key Support |
+|----------|------|-------------------|---------------------|
+| Swift | `Credentials.swift` | CryptoKit (built-in) | ✅ Full support |
+| Kotlin | `Credentials.kt` | javax.crypto (built-in) | 🔄 Auto-fallback to embedded |
+| Java | `Credentials.java` | javax.crypto (built-in) | 🔄 Auto-fallback to embedded |
+| Python | `credentials.py` | [cryptography](https://pypi.org/project/cryptography/) | 🔄 Auto-fallback to embedded |
+| C++ | `credentials.cpp` | OpenSSL | 🔄 Auto-fallback to embedded |
+
+> **Note:** External key mode is currently only fully supported for Swift. Other languages will automatically use embedded key mode with a warning message. To silence the warning, use `--embedded-key`.
 
 ## Usage
 
@@ -136,25 +145,43 @@ Edit `.credential-code/credentials.json`:
 Generate encrypted code for your target language:
 
 ```bash
-# Swift (default)
+# Default: Swift with external key + .creds file
 credential-code generate
+# Creates: 
+# - Generated/Credentials.swift
+# - Generated/credentials.creds
+# - .credential-code/encryption-key.txt
 
-# Other languages
+# Other languages (also generate .creds by default)
 credential-code generate --language kotlin
 credential-code generate --language java --output src/main/java/Creds.java
+
+# Without .creds file
+credential-code generate --no-generate-creds
 ```
 
-#### External Key Mode (New!)
+By default, credential-code now generates:
+- **Code file**: Language-specific encrypted credentials (e.g., Generated/Credentials.swift)
+- **.creds file**: JSON format for backend/runtime use (Generated/credentials.creds)
+- **External key**: Stored in `.credential-code/encryption-key.txt` (base64 format)
+- **Key reuse**: If the key file exists, it's reused (consistent encryption across builds)
+- **Easy copying**: Key is displayed when first generated for manual backup
 
-For enhanced security and deployment flexibility, use external key mode to separate encryption keys from your code:
+#### Key Management Options
 
-**Option 1: JSON Key File**
+**Default: External Key File**
 ```bash
-# Generate with external key file
-credential-code generate --external-key
+# Generate with external key (default)
+credential-code generate
 
 # Specify custom key file path
-credential-code generate --external-key --key-file path/to/key.json
+credential-code generate --key-file path/to/key.txt
+```
+
+**Option 1: Embedded Key (Legacy)**
+```bash
+# Generate with embedded key (old behavior)
+credential-code generate --embedded-key
 ```
 
 **Option 2: Source Code Key**
@@ -166,11 +193,32 @@ credential-code generate --external-key-source
 credential-code generate --external-key-source --key-source-output Keys/MyKey.swift
 ```
 
-Both options create two files:
-- **Encrypted credentials code**: Contains only encrypted data (safe to commit)
-- **Key file**: JSON or source code with decryption key (store separately, never commit)
-
 📖 **[See the complete External Key Usage Guide](docs/EXTERNAL_KEY_GUIDE.md)** for detailed instructions
+
+### Backend/Runtime Configuration (.creds files)
+
+`.creds` files are now generated by default alongside code files:
+
+```bash
+# Default: generates both code and .creds
+credential-code generate
+
+# Custom .creds output path
+credential-code generate --creds-output backend/prod.creds
+
+# Disable .creds generation (code only)
+credential-code generate --no-generate-creds
+```
+
+The `.creds` file can be loaded at runtime by any backend service:
+```javascript
+// Node.js example
+const key = fs.readFileSync('encryption-key.txt', 'utf8');
+const creds = JSON.parse(fs.readFileSync('credentials.creds'));
+const apiKey = decrypt(creds, key, 'API_KEY');
+```
+
+📖 **[See the Two Use Cases Guide](docs/TWO_USE_CASES.md)** for detailed examples
 
 ### Language Examples
 
@@ -178,27 +226,28 @@ Both options create two files:
 ```swift
 import Foundation
 
-// Standard mode (embedded key)
-if let apiKey = Credentials.decrypt(.API_KEY) {
-    let headers = ["Authorization": "Bearer \(apiKey)"]
-    // Make API request...
-}
-
-// With caching for frequently used credentials
-let dbUrl = Credentials.decryptCached(.DATABASE_URL)
-
-// External key mode
-// First, initialize with the key
-try Credentials.loadKey(from: "path/to/key.json")
-// Or with base64 key string
+// Default mode (external key)
+// First, load the key
+try Credentials.loadKey(from: ".credential-code/encryption-key.txt")
+// Or initialize with base64 key string
 try Credentials.initialize(with: "base64EncodedKey...")
 
 // Then access credentials
 let apiKey = try Credentials.get(.API_KEY)
+let dbUrl = try Credentials.get(.DATABASE_URL)
+
+// Legacy mode (embedded key)
+if let apiKey = Credentials.decrypt(.API_KEY) {
+    let headers = ["Authorization": "Bearer \(apiKey)"]
+    // Make API request...
+}
 ```
 
 #### Kotlin Example
 ```kotlin
+// Note: Kotlin currently uses embedded key mode
+// Generate with: credential-code generate --language kotlin
+
 // Decrypt a credential
 val apiKey = Credentials.decrypt(CredentialKey.API_KEY)
 apiKey?.let { key ->
@@ -222,6 +271,9 @@ if (apiKey != null) {
 
 #### Python Example
 ```python
+# Note: Python currently uses embedded key mode
+# Generate with: credential-code generate --language python
+
 from credentials import Credentials, CredentialKey
 
 # Decrypt a credential
@@ -260,6 +312,20 @@ The demo:
 - Runs working examples
 - Shows the complete workflow
 
+### Dual Use Example
+
+See the `example-dual-use/` directory for a complete example showing both approaches:
+
+```bash
+cd example-dual-use
+./demo.sh
+```
+
+This demonstrates:
+- **Compiled approach**: Credentials embedded in Swift binary
+- **Runtime approach**: Credentials loaded from .creds file in Node.js
+- Both methods decrypt the same credentials using the same key
+
 ## Security
 
 ### How It Works
@@ -272,11 +338,11 @@ The demo:
 ### Security Features
 
 - **AES-256-GCM encryption** with authenticated encryption
-- **Unique key per build** - Each generation uses a new random key
-- **Obfuscated key storage** - Keys are split and reconstructed at runtime
+- **External keys by default** - Keys stored separately from code
+- **Key persistence** - Same key reused across builds (when file exists)
 - **No string literals** - Credentials never appear as plain text in binaries
 - **Memory-only decryption** - Decrypted values exist only during use
-- **External key support** - Separate keys from code for enhanced security
+- **Multiple key formats** - Plain text, JSON, or source code
 
 ### Best Practices
 
@@ -354,14 +420,18 @@ credential-code generate \
 
 ### External Key Management
 
-Use external keys for better security in production environments:
+External keys are now the default for better security:
 
 ```bash
-# Generate with external key
-credential-code generate --external-key --key-file keys/prod.key
+# Generate with default external key
+credential-code generate
+# Key saved to: .credential-code/encryption-key.txt
+
+# Use custom key location
+credential-code generate --key-file keys/prod.key
 
 # Store key in environment variable (CI/CD)
-export CREDENTIAL_KEY=$(cat keys/prod.key | jq -r .key)
+export CREDENTIAL_KEY=$(cat .credential-code/encryption-key.txt)
 ```
 
 **Key Storage Options:**

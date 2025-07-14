@@ -1,0 +1,17 @@
+
+# Credential Code
+.credential-code/
+
+# Compiled binaries
+print-from-swift
+print-from-creds
+
+# Generated files
+Generated/
+
+# Encryption key (if accidentally placed here)
+encryption-key.txt
+*.key
+
+# OS files
+.DS_Store

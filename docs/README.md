@@ -10,6 +10,7 @@ Welcome to the credential-code documentation. This index helps you find the righ
 ## Core Documentation
 - [Security Model](SECURITY.md) - Understand the security architecture and threat model
 - [External Key Usage Guide](EXTERNAL_KEY_GUIDE.md) - Complete guide for external key features
+- [Two Use Cases Guide](TWO_USE_CASES.md) - Fixed apps vs configurable backends
 - [Changelog](../CHANGELOG.md) - Version history and breaking changes
 
 ## Examples and Demos
@@ -29,8 +30,11 @@ Welcome to the credential-code documentation. This index helps you find the righ
 | Feature | Swift | Kotlin | Java | Python | C++ |
 |---------|-------|--------|------|--------|-----|
 | Basic Generation | ✅ | ✅ | ✅ | ✅ | ✅ |
-| External Key (JSON) | ✅ | ❌ | ❌ | ❌ | ❌ |
-| External Key (Source) | ✅ | ❌ | ❌ | ❌ | ❌ |
+| External Key Mode | ✅ | 🔄* | 🔄* | 🔄* | 🔄* |
+| External Key Source | ✅ | 🔄* | 🔄* | 🔄* | 🔄* |
+| .creds File Generation | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+*🔄 = Auto-fallback to embedded key mode with warning message
 
 ## Security Warning
 

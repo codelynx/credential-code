@@ -1,32 +1,55 @@
 # External Key Usage Guide
 
-This guide explains how to use the external key feature with `credential-key.json` or as source code.
+This guide explains how to use the external key feature, which is now the default behavior in Credential Code.
 
 ## Overview
 
-Credential-code supports two external key modes:
+Credential Code uses external keys by default for better security. The encryption key is stored separately from your code, allowing for more flexible deployment strategies.
 
 > **Note**: External key features are currently fully implemented for Swift only. Support for Kotlin, Java, Python, and C++ is planned for future releases.
 
-### 1. JSON Key File (`--external-key`)
-Generates two files:
+### Default Behavior
+Since external keys are now default, running `credential-code generate` creates:
 - **Generated code file** - Contains only encrypted credentials (safe to commit)
-- **Key file (credential-key.json)** - Contains the decryption key (never commit this!)
+- **Key file (.credential-code/encryption-key.txt)** - Contains the base64 encryption key (never commit this!)
+- **.creds file** - JSON format for runtime use (safe to commit)
 
-### 2. Source Code Key (`--external-key-source`)
-Generates two source files:
+### Key Modes
+
+#### 1. Plain Text Key File (Default)
+The default mode stores the key as a base64 string in `.credential-code/encryption-key.txt`:
+- Key is automatically created if it doesn't exist
+- Key is reused across builds for consistent encryption
+- Plain text format for easy copying and manual use
+- Key is displayed when first generated
+
+#### 2. Source Code Key (`--external-key-source`)
+Generates the key as source code:
 - **Generated code file** - Contains only encrypted credentials (safe to commit)  
 - **Key source file** - Contains the decryption key as source code (never commit this!)
 
 ## Generating with External Key
 
-### JSON Key File
+### Default Mode (Plain Text Key)
 ```bash
-# Generate with default key file name (credential-key.json)
-credential-code generate --external-key
+# Generate with default external key (this is now the default)
+credential-code generate
+# Creates:
+# - Generated/Credentials.swift
+# - Generated/credentials.creds
+# - .credential-code/encryption-key.txt
 
 # Generate with custom key file name
-credential-code generate --external-key --key-file my-secret-key.json
+credential-code generate --key-file my-secret-key.txt
+
+# Generate without .creds file
+credential-code generate --no-generate-creds
+```
+
+### Embedded Key Mode (Legacy)
+```bash
+# Use the old embedded key behavior
+credential-code generate --embedded-key --no-generate-creds
 ```
 
 ### Source Code Key
@@ -40,19 +63,18 @@ credential-code generate --external-key-source --key-source-output Keys/MyKey.sw
 
 ## Key File Formats
 
-### JSON Format (--external-key)
+### Plain Text Format (Default)
 
-```json
-{
-  "version": "1.0",
-  "algorithm": "AES-256-GCM",
-  "key": "H3bhCcgWg5qhEg21AqIAp17Tt5xiwZJbk7eGHG0K1nU="
-}
+The default key file `.credential-code/encryption-key.txt` contains just the base64-encoded key:
+
+```
+H3bhCcgWg5qhEg21AqIAp17Tt5xiwZJbk7eGHG0K1nU=
 ```
 
-- `version`: Key format version
-- `algorithm`: Encryption algorithm used
-- `key`: Base64-encoded 256-bit encryption key
+- Simple base64 string (no JSON wrapper)
+- 256-bit encryption key
+- Easy to copy and paste
+- Compatible with environment variables
 
 ### Source Code Format (--external-key-source)
 
@@ -85,25 +107,24 @@ let apiKey = try Credentials.get(.API_KEY)
 print("API Key: \(apiKey)")
 ```
 
-#### With JSON Key File (--external-key)
+#### With Plain Text Key File (Default)
 
 ```swift
 import Foundation
 
-// Method 1: Load from file
+// Method 1: Load from default location
 do {
-    try Credentials.loadKey(from: "path/to/credential-key.json")
+    try Credentials.loadKey(from: ".credential-code/encryption-key.txt")
     let apiKey = try Credentials.get(.API_KEY)
     print("API Key: \(apiKey)")
 } catch {
     print("Error: \(error)")
 }
 
-// Method 2: Initialize with key data
-let keyData = try Data(contentsOf: URL(fileURLWithPath: "credential-key.json"))
-let keyJSON = try JSONSerialization.jsonObject(with: keyData) as! [String: Any]
-let base64Key = keyJSON["key"] as! String
-try Credentials.initialize(with: base64Key)
+// Method 2: Initialize with key string
+let keyString = try String(contentsOfFile: ".credential-code/encryption-key.txt")
+    .trimmingCharacters(in: .whitespacesAndNewlines)
+try Credentials.initialize(with: keyString)
 
 // Method 3: From environment variable
 if let base64Key = ProcessInfo.processInfo.environment["CREDENTIAL_KEY"] {

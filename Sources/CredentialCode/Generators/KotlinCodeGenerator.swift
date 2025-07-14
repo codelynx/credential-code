@@ -180,6 +180,10 @@ struct KotlinCodeGenerator: CodeGenerator {
         throw CredentialError.notImplemented("External key generation is not yet implemented for Kotlin")
     }
     
+    func generateWithExternalKeySource(credentials: [String: String], encryptionKey: Data) throws -> String {
+        throw CredentialError.notImplemented("External key source generation for Kotlin")
+    }
+    
     func generateKeySource(encryptionKey: Data) throws -> String {
         throw CredentialError.notImplemented("Key source generation is not yet implemented for Kotlin")
     }

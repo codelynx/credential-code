@@ -69,15 +69,22 @@ credential-code init
 ### 4. 暗号化コードを生成
 
 ```bash
+# デフォルト: 外部キーと.credsファイルを生成
 credential-code generate
+# 作成されるファイル:
+# - Generated/Credentials.swift (暗号化されたデータ)
+# - Generated/credentials.creds (ランタイム用認証情報)
+# - .credential-code/encryption-key.txt (暗号化キー)
 ```
 
 ### 5. アプリで使用
 
 ```swift
-if let apiKey = Credentials.decrypt(.API_KEY) {
-    // APIキーを安全に使用
-}
+// 外部キーを読み込む
+try Credentials.loadKey(from: ".credential-code/encryption-key.txt")
+
+// 認証情報にアクセス
+let apiKey = try Credentials.get(.API_KEY)
 ```
 
 ## 📚 完全なドキュメント
@@ -132,31 +139,41 @@ credential-code init
 ターゲット言語用の暗号化コードを生成:
 
 ```bash
-# Swift (デフォルト)
+# Swift (デフォルト) - 外部キーと.credsファイルを生成
 credential-code generate
 
 # その他の言語
 credential-code generate --language kotlin
 credential-code generate --language java --output src/main/java/Creds.java
+
+# .credsファイルなしで生成
+credential-code generate --no-generate-creds
+
+# 埋め込みキーを使用 (レガシーモード)
+credential-code generate --embedded-key --no-generate-creds
 ```
 
-#### 外部キーモード（新機能！）
+#### 外部キーモード（デフォルト）
 
-セキュリティと配備の柔軟性を向上させるため、暗号化キーをコードから分離できます:
+Credential Codeは、セキュリティ向上のため外部キーをデフォルトで使用します:
 
 ```bash
-# 外部キーファイルで生成
-credential-code generate --external-key
+# デフォルト: 外部キーで生成
+credential-code generate
+# 作成されるファイル:
+# - Generated/Credentials.swift (暗号化されたデータ)
+# - Generated/credentials.creds (ランタイム用認証情報)
+# - .credential-code/encryption-key.txt (暗号化キー)
 
-# カスタムキーファイルパスを指定
-credential-code generate --external-key --key-file path/to/key.json
+# キーはビルド間で再利用されます
+# 初回生成時にキーが表示されます
+# コピーしやすいプレーンテキストBase64形式
+
+# 埋め込みキーを使用 (レガシーモード)
+credential-code generate --embedded-key --no-generate-creds
 ```
 
-これにより2つのファイルが作成されます:
-- **暗号化された認証情報コード**: 暗号化されたデータのみを含む（コミット可能）
-- **キーファイル**: 復号化キーを含む（別途保管、コミット不可）
-
-📖 **[外部キー使用ガイド（英語）](docs/EXTERNAL_KEY_GUIDE.md)** でcredential-key.jsonの詳細な使用方法をご覧ください
+📖 **[外部キー使用ガイド（英語）](docs/EXTERNAL_KEY_GUIDE.md)** で詳細な使用方法とデプロイ戦略をご覧ください
 
 ### 言語別の例
 
@@ -164,23 +181,21 @@ credential-code generate --external-key --key-file path/to/key.json
 ```swift
 import Foundation
 
-// 標準モード（埋め込みキー）
-if let apiKey = Credentials.decrypt(.API_KEY) {
-    let headers = ["Authorization": "Bearer \(apiKey)"]
-    // APIリクエストを実行...
-}
-
-// 頻繁に使用する認証情報にはキャッシュを使用
-let dbUrl = Credentials.decryptCached(.DATABASE_URL)
-
-// 外部キーモード
-// まず、キーで初期化
-try Credentials.loadKey(from: "path/to/key.json")
-// またはbase64キー文字列で
-try Credentials.initialize(with: "base64EncodedKey...")
+// デフォルトモード（外部キー）
+// まず、キーを読み込む
+try Credentials.loadKey(from: ".credential-code/encryption-key.txt")
 
 // 次に認証情報にアクセス
 let apiKey = try Credentials.get(.API_KEY)
+let headers = ["Authorization": "Bearer \(apiKey)"]
+
+// 頻繁に使用する認証情報にはキャッシュを使用
+let dbUrl = try Credentials.getCached(.DATABASE_URL)
+
+// レガシーモード（埋め込みキー）
+if let apiKey = Credentials.decrypt(.API_KEY) {
+    // APIキーを使用...
+}
 ```
 
 #### Kotlin例

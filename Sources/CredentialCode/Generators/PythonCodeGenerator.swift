@@ -173,6 +173,10 @@ struct PythonCodeGenerator: CodeGenerator {
         throw CredentialError.notImplemented("External key generation is not yet implemented for Python")
     }
     
+    func generateWithExternalKeySource(credentials: [String: String], encryptionKey: Data) throws -> String {
+        throw CredentialError.notImplemented("External key source generation for Python")
+    }
+    
     func generateKeySource(encryptionKey: Data) throws -> String {
         throw CredentialError.notImplemented("Key source generation is not yet implemented for Python")
     }

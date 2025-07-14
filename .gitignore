@@ -109,3 +109,17 @@ test-credentials
 *.test
 test-external-key/
 test-external-key-source/
+
+# Backend credential files
+*.creds
+credentials.creds
+
+# Example compiled binaries
+example-dual-use/print-from-swift
+example-dual-use/print-from-creds
+
+# Temporary files
+*.tmp
+*.log
+*.err
+*.out

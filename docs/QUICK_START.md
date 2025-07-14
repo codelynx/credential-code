@@ -36,24 +36,32 @@ Edit `.credential-code/credentials.json`:
 ### 3. Generate encrypted code
 
 ```bash
-# Standard mode (embedded key)
+# Default: external key + .creds file
 credential-code generate
+# Creates: 
+# - Generated/Credentials.swift (encrypted code)
+# - Generated/credentials.creds (runtime credentials)
+# - .credential-code/encryption-key.txt (encryption key)
 
-# Or with external key for better security
-credential-code generate --external-key
+# Code only (no .creds file)
+credential-code generate --no-generate-creds
+
+# With embedded key (legacy mode)
+credential-code generate --embedded-key --no-generate-creds
 ```
 
 ### 4. Use in your app
 
 ```swift
-// Swift - Standard mode
+// Swift - Default external key mode
+try Credentials.loadKey(from: ".credential-code/encryption-key.txt")
+let apiKey = try Credentials.get(.API_KEY)
+print("Got API key: \(apiKey)")
+
+// Swift - Legacy embedded key mode (requires --embedded-key flag)
 if let apiKey = Credentials.decrypt(.API_KEY) {
     print("Got API key: \(apiKey)")
 }
-
-// Swift - External key mode
-try Credentials.loadKey(from: "credential-key.json")
-let apiKey = try Credentials.get(.API_KEY)
 ```
 
 ## That's it! 🎉
@@ -85,7 +93,11 @@ Your credential is now:
 
 ### Kotlin/Android
 ```bash
+# Default: external key + .creds file
 credential-code generate --language kotlin
+
+# With embedded key (legacy)
+credential-code generate --language kotlin --embedded-key --no-generate-creds
 ```
 
 ```kotlin
@@ -111,18 +123,27 @@ credential-code generate --language java
 String apiKey = Credentials.decrypt(CredentialKey.API_KEY);
 ```
 
-## External Key Mode (Production Ready)
+## External Key Mode (Default)
 
-For enhanced security, use external key mode to separate keys from code:
+Credential Code now uses external keys by default for better security:
 
 ```bash
-# Generate with external key
-credential-code generate --external-key --key-file prod.key
+# Generate with default settings
+credential-code generate
+# Creates:
+# - Generated/Credentials.swift (encrypted data)
+# - Generated/credentials.creds (runtime credentials)
+# - .credential-code/encryption-key.txt (base64 key)
 
-# This creates two files:
-# 1. Credentials.swift - Contains only encrypted data
-# 2. prod.key - Contains the decryption key
+# Use custom key location
+credential-code generate --key-file prod.key
 ```
+
+**Key Features:**
+- Key is reused across builds (consistent encryption)
+- Key is displayed when first generated
+- Plain text base64 format (easy to copy/paste)
+- Both code and .creds files use same encryption
 
 Store the key file securely:
 - Environment variables
@@ -136,7 +157,7 @@ Store the key file securely:
 2. **Use UPPER_SNAKE_CASE**: For credential keys (e.g., `API_KEY`, not `apiKey`)
 3. **Generate before building**: Add to your build script
 4. **Different environments**: Use different credential files for dev/prod
-5. **External keys for production**: Better security and key rotation
+5. **External keys by default**: Keys are now separate from code
 
 ## Common Issues
 

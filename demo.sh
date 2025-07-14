@@ -53,25 +53,27 @@ mkdir -p swift kotlin java python cpp
 # Generate code for each language
 echo -e "\n${BLUE}Step 3: Generating encrypted code for all languages...${NC}"
 
-echo -e "\n${YELLOW}Swift:${NC}"
+echo -e "\n${YELLOW}Swift (with external key - default):${NC}"
 $TOOL_PATH generate --language swift --output swift/Credentials.swift
 echo "  ✅ Generated swift/Credentials.swift"
+echo "  ✅ Generated .credential-code/encryption-key.txt (encryption key)"
+echo -e "  ${YELLOW}Note: Key is reused across regenerations${NC}"
 
-echo -e "\n${YELLOW}Kotlin:${NC}"
-$TOOL_PATH generate --language kotlin --output kotlin/Credentials.kt
-echo "  ✅ Generated kotlin/Credentials.kt"
+echo -e "\n${YELLOW}Kotlin (embedded key for demo):${NC}"
+$TOOL_PATH generate --language kotlin --output kotlin/Credentials.kt --embedded-key
+echo "  ✅ Generated kotlin/Credentials.kt (with embedded key)"
 
-echo -e "\n${YELLOW}Java:${NC}"
-$TOOL_PATH generate --language java --output java/Credentials.java
-echo "  ✅ Generated java/Credentials.java"
+echo -e "\n${YELLOW}Java (embedded key for demo):${NC}"
+$TOOL_PATH generate --language java --output java/Credentials.java --embedded-key
+echo "  ✅ Generated java/Credentials.java (with embedded key)"
 
-echo -e "\n${YELLOW}Python:${NC}"
-$TOOL_PATH generate --language python --output python/credentials.py
-echo "  ✅ Generated python/credentials.py"
+echo -e "\n${YELLOW}Python (embedded key for demo):${NC}"
+$TOOL_PATH generate --language python --output python/credentials.py --embedded-key
+echo "  ✅ Generated python/credentials.py (with embedded key)"
 
-echo -e "\n${YELLOW}C++:${NC}"
-$TOOL_PATH generate --language c++ --output cpp/credentials.cpp
-echo "  ✅ Generated cpp/credentials.cpp"
+echo -e "\n${YELLOW}C++ (embedded key for demo):${NC}"
+$TOOL_PATH generate --language c++ --output cpp/credentials.cpp --embedded-key
+echo "  ✅ Generated cpp/credentials.cpp (with embedded key)"
 
 # Demonstrate external key mode with source code
 echo -e "\n${BLUE}Step 3b: Generating with external key source (Swift example)...${NC}"
@@ -84,36 +86,41 @@ echo -e "${YELLOW}  ⚠️  Note: Key source file should be stored securely and 
 # Create test programs for each language
 echo -e "\n${BLUE}Step 4: Creating test programs...${NC}"
 
-# Swift test program
+# Swift test program (external key mode)
 cat > swift/test.swift << 'EOF'
 import Foundation
 
 @main
 struct TestCredentials {
     static func main() {
-        print("🔐 Swift Credential Test")
-        print("=======================")
-
-        if let apiKey = Credentials.decrypt(.API_KEY) {
+        print("🔐 Swift Credential Test (External Key Mode)")
+        print("============================================")
+        
+        do {
+            // Load the external key
+            try Credentials.loadKey(from: "../.credential-code/encryption-key.txt")
+            print("✅ Loaded encryption key from file")
+            
+            // Access credentials
+            let apiKey = try Credentials.get(.API_KEY)
             print("✅ API_KEY: \(apiKey)")
-        }
-
-        if let dbUrl = Credentials.decrypt(.DATABASE_URL) {
+            
+            let dbUrl = try Credentials.get(.DATABASE_URL)
             print("✅ DATABASE_URL: \(dbUrl)")
-        }
-
-        if let jwtSecret = Credentials.decrypt(.JWT_SECRET) {
+            
+            let jwtSecret = try Credentials.get(.JWT_SECRET)
             print("✅ JWT_SECRET: \(jwtSecret)")
+            
+            // Test subscript access
+            if let stripe = Credentials[.STRIPE_KEY] {
+                print("✅ STRIPE_KEY (subscript): \(stripe)")
+            }
+            
+            print("\n✨ External key mode working correctly!")
+            
+        } catch {
+            print("❌ Error: \(error)")
         }
-
-        // Test caching
-        print("\n📦 Testing cached access...")
-        if let stripe = Credentials.decryptCached(.STRIPE_KEY) {
-            print("✅ STRIPE_KEY (cached): \(stripe)")
-        }
-
-        Credentials.clearCache()
-        print("🧹 Cache cleared")
     }
 }
 EOF

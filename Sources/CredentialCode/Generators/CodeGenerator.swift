@@ -6,6 +6,7 @@ protocol CodeGenerator {
     
     func generate(credentials: [String: String], encryptionKey: Data) throws -> String
     func generateWithExternalKey(credentials: [String: String], encryptionKey: Data) throws -> String
+    func generateWithExternalKeySource(credentials: [String: String], encryptionKey: Data) throws -> String
     func generateKeySource(encryptionKey: Data) throws -> String
 }
 
