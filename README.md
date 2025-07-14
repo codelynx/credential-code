@@ -103,12 +103,12 @@ if let apiKey = Credentials.decrypt(.API_KEY) {
 | Language | File | Required Libraries | Key Mode |
 |----------|------|-------------------|----------|
 | Swift | `Credentials.swift` | CryptoKit (built-in) | Embedded by default, external available |
-| Kotlin | `Credentials.kt` | javax.crypto (built-in) | Embedded only |
-| Java | `Credentials.java` | javax.crypto (built-in) | Embedded only |
-| Python | `credentials.py` | [cryptography](https://pypi.org/project/cryptography/) | Embedded only |
-| C++ | `credentials.cpp` | OpenSSL | Embedded only |
+| Kotlin | `Credentials.kt` | javax.crypto (built-in) | Embedded by default, external available |
+| Java | `Credentials.java` | javax.crypto (built-in) | Embedded by default, external available |
+| Python | `credentials.py` | [cryptography](https://pypi.org/project/cryptography/) | Embedded by default, external available |
+| C++ | `credentials.cpp` | OpenSSL | Embedded by default, external available |
 
-> **Note:** All languages generate self-contained code with embedded keys by default. Swift additionally supports external key mode with the `--external-key` flag.
+> **Note:** All languages generate self-contained code with embedded keys by default. All languages support external key mode with the `--external-key` flag for enhanced security.
 
 ## Usage
 
@@ -243,7 +243,7 @@ let apiKey = try Credentials.get(.API_KEY)
 
 #### Kotlin Example
 ```kotlin
-// Decrypt a credential
+// Default mode (embedded key) - no setup needed!
 val apiKey = Credentials.decrypt(CredentialKey.API_KEY)
 apiKey?.let { key ->
     val headers = mapOf("Authorization" to "Bearer $key")
@@ -252,23 +252,35 @@ apiKey?.let { key ->
 
 // With caching
 val dbUrl = Credentials.decryptCached(CredentialKey.DATABASE_URL)
+
+// External key mode (requires --external-key flag during generation)
+// First, load the key
+Credentials.loadKey(".credential-code/encryption-key.txt")
+// Then access credentials
+val apiKey = Credentials.get(CredentialKey.API_KEY)
 ```
 
 #### Java Example
 ```java
-// Decrypt a credential
+// Default mode (embedded key) - no setup needed!
 String apiKey = Credentials.decrypt(CredentialKey.API_KEY);
 if (apiKey != null) {
     Map<String, String> headers = Map.of("Authorization", "Bearer " + apiKey);
     // Make API request...
 }
+
+// External key mode (requires --external-key flag during generation)
+// First, load the key
+Credentials.loadKey(".credential-code/encryption-key.txt");
+// Then access credentials
+String apiKey = Credentials.get(CredentialKey.API_KEY);
 ```
 
 #### Python Example
 ```python
 from credentials import Credentials, CredentialKey
 
-# Decrypt a credential
+# Default mode (embedded key) - no setup needed!
 api_key = Credentials.decrypt(CredentialKey.API_KEY)
 if api_key:
     headers = {"Authorization": f"Bearer {api_key}"}
@@ -276,18 +288,30 @@ if api_key:
 
 # With caching
 db_url = Credentials.decrypt_cached(CredentialKey.DATABASE_URL)
+
+# External key mode (requires --external-key flag during generation)
+# First, load the key
+Credentials.load_key(".credential-code/encryption-key.txt")
+# Then access credentials
+api_key = Credentials.get(CredentialKey.API_KEY)
 ```
 
 #### C++ Example
 ```cpp
 #include "credentials.h"
 
-// Decrypt a credential
+// Default mode (embedded key) - no setup needed!
 auto apiKey = Credentials::decrypt(CredentialKey::API_KEY);
 if (apiKey.has_value()) {
     std::string authHeader = "Bearer " + apiKey.value();
     // Make API request...
 }
+
+// External key mode (requires --external-key flag during generation)
+// First, load the key
+Credentials::loadKey(".credential-code/encryption-key.txt");
+// Then access credentials
+std::string apiKey = Credentials::get(CredentialKey::API_KEY);
 ```
 
 ## Demo

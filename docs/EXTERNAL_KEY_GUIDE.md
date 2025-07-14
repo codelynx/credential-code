@@ -1,12 +1,10 @@
 # External Key Usage Guide
 
-This guide explains how to use the external key feature for Swift code generation.
+This guide explains how to use the external key feature for enhanced security in credential management.
 
 ## Overview
 
-While Credential Code uses embedded keys by default for source code generation, Swift supports an optional external key mode for enhanced security scenarios where you want to keep the key separate from the code.
-
-> **Note**: External key features are only available for Swift. Other languages always use embedded keys.
+While Credential Code uses embedded keys by default for source code generation, all languages support an optional external key mode for enhanced security scenarios where you want to keep the key separate from the code.
 
 ### When to Use External Keys
 - When you need to rotate keys without recompiling
@@ -29,9 +27,9 @@ Generates the key as source code:
 
 ## Generating with External Key
 
-### External Key Mode (Swift Only)
+### External Key Mode
 ```bash
-# Generate Swift code with external key file
+# Generate code with external key file (all languages)
 credential-code generate --external-key
 # Creates:
 # - Generated/Credentials.swift (requires external key)
@@ -125,9 +123,104 @@ if let base64Key = ProcessInfo.processInfo.environment["CREDENTIAL_KEY"] {
 }
 ```
 
-### Other Languages (Coming Soon)
+### Kotlin
 
-External key support is currently fully implemented for Swift. Other languages (Kotlin, Java, Python, C++) will be updated in future releases.
+```kotlin
+// Method 1: Load from default location
+try {
+    Credentials.loadKey(".credential-code/encryption-key.txt")
+    val apiKey = Credentials.get(CredentialKey.API_KEY)
+    println("API Key: $apiKey")
+} catch (e: Exception) {
+    println("Failed to load credentials: ${e.message}")
+}
+
+// Method 2: Initialize with base64 key string
+val keyString = "H3bhCcgWg5qhEg21AqIAp17Tt5xiwZJbk7eGHG0K1nU="
+Credentials.initialize(keyString)
+
+// Method 3: Initialize with raw bytes
+val keyData = Base64.getDecoder().decode(keyString)
+Credentials.initialize(keyData)
+```
+
+Additional dependencies for external key mode:
+- `org.json:json` (for JSON key file parsing)
+
+### Java
+
+```java
+// Method 1: Load from default location
+try {
+    Credentials.loadKey(".credential-code/encryption-key.txt");
+    String apiKey = Credentials.get(CredentialKey.API_KEY);
+    System.out.println("API Key: " + apiKey);
+} catch (Exception e) {
+    System.err.println("Failed to load credentials: " + e.getMessage());
+}
+
+// Method 2: Initialize with base64 key string
+String keyString = "H3bhCcgWg5qhEg21AqIAp17Tt5xiwZJbk7eGHG0K1nU=";
+Credentials.initialize(keyString);
+
+// Method 3: Initialize with raw bytes
+byte[] keyData = Base64.getDecoder().decode(keyString);
+Credentials.initialize(keyData);
+```
+
+Additional dependencies for external key mode:
+- `com.fasterxml.jackson.core:jackson-databind` (for JSON key file parsing)
+
+### Python
+
+```python
+# Method 1: Load from default location
+try:
+    Credentials.load_key(".credential-code/encryption-key.txt")
+    api_key = Credentials.get(CredentialKey.API_KEY)
+    print(f"API Key: {api_key}")
+except CredentialError as e:
+    print(f"Failed to load credentials: {e}")
+
+# Method 2: Initialize with base64 key string
+key_string = "H3bhCcgWg5qhEg21AqIAp17Tt5xiwZJbk7eGHG0K1nU="
+Credentials.initialize_base64(key_string)
+
+# Method 3: Initialize with raw bytes
+import base64
+key_data = base64.b64decode(key_string)
+Credentials.initialize(key_data)
+
+# Method 4: Using convenience functions
+from credentials import load_key, get_credential
+load_key(".credential-code/encryption-key.txt")
+api_key = get_credential(CredentialKey.API_KEY)
+```
+
+### C++
+
+```cpp
+// Method 1: Load from default location
+try {
+    Credentials::loadKey(".credential-code/encryption-key.txt");
+    std::string apiKey = Credentials::get(CredentialKey::API_KEY);
+    std::cout << "API Key: " << apiKey << std::endl;
+} catch (const CredentialException& e) {
+    std::cerr << "Failed to load credentials: " << e.what() << std::endl;
+}
+
+// Method 2: Initialize with base64 key string
+std::string keyString = "H3bhCcgWg5qhEg21AqIAp17Tt5xiwZJbk7eGHG0K1nU=";
+Credentials::initialize(keyString);
+
+// Method 3: Initialize with raw bytes
+std::vector<uint8_t> keyData = base64Decode(keyString);
+Credentials::initialize(keyData);
+```
+
+Additional dependencies for external key mode:
+- `nlohmann/json` (for JSON key file parsing)
+- OpenSSL (already required for encryption)
 
 ## Source Code Key Benefits
 

@@ -30,11 +30,9 @@ Welcome to the credential-code documentation. This index helps you find the righ
 | Feature | Swift | Kotlin | Java | Python | C++ |
 |---------|-------|--------|------|--------|-----|
 | Basic Generation | ✅ | ✅ | ✅ | ✅ | ✅ |
-| External Key Mode | ✅ | 🔄* | 🔄* | 🔄* | 🔄* |
-| External Key Source | ✅ | 🔄* | 🔄* | 🔄* | 🔄* |
+| External Key Mode | ✅ | ✅ | ✅ | ✅ | ✅ |
+| External Key Source | ✅ | ✅ | ✅ | ✅ | ✅ |
 | .creds File Generation | ✅ | ✅ | ✅ | ✅ | ✅ |
-
-*🔄 = Auto-fallback to embedded key mode with warning message
 
 ## Security Warning
 

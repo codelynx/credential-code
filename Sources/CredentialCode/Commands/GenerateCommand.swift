@@ -130,39 +130,27 @@ struct GenerateCommand: ParsableCommand {
         // Generate code - always use embedded key for source code
         let generatedCode: String
         if externalKey {
-            // External key file mode (only for Swift)
-            if language != .swift {
-                print("⚠️  External key mode is not yet supported for \(language.rawValue)")
-                print("   Using embedded key mode instead...")
-                generatedCode = try generator.generate(credentials: credentials, encryptionKey: codeEncryptionKey)
-            } else {
-                generatedCode = try generator.generateWithExternalKey(credentials: credentials, encryptionKey: codeEncryptionKey)
-            }
+            // External key file mode
+            generatedCode = try generator.generateWithExternalKey(credentials: credentials, encryptionKey: codeEncryptionKey)
         } else if externalKeySource {
-            // External key as source code (only for Swift)
-            if language != .swift {
-                print("⚠️  External key source mode is not yet supported for \(language.rawValue)")
-                print("   Using embedded key mode instead...")
-                generatedCode = try generator.generate(credentials: credentials, encryptionKey: codeEncryptionKey)
-            } else {
-                generatedCode = try generator.generateWithExternalKeySource(credentials: credentials, encryptionKey: codeEncryptionKey)
-                
-                // Generate key source file
-                let keySourcePath = keySourceOutput ?? getDefaultKeySourcePath(for: language)
-                let keySourceURL = URL(fileURLWithPath: keySourcePath)
-                
-                // Create parent directory if needed
-                let keyParentDir = keySourceURL.deletingLastPathComponent()
-                if !FileManager.default.fileExists(atPath: keyParentDir.path) {
-                    try FileManager.default.createDirectory(at: keyParentDir, withIntermediateDirectories: true)
-                }
-                
-                // Generate key source code
-                let keySourceCode = try generator.generateKeySource(encryptionKey: codeEncryptionKey)
-                try keySourceCode.write(to: keySourceURL, atomically: true, encoding: .utf8)
-                
-                print("✅ Generated key source file: \(keySourcePath)")
+            // External key as source code
+            generatedCode = try generator.generateWithExternalKeySource(credentials: credentials, encryptionKey: codeEncryptionKey)
+            
+            // Generate key source file
+            let keySourcePath = keySourceOutput ?? getDefaultKeySourcePath(for: language)
+            let keySourceURL = URL(fileURLWithPath: keySourcePath)
+            
+            // Create parent directory if needed
+            let keyParentDir = keySourceURL.deletingLastPathComponent()
+            if !FileManager.default.fileExists(atPath: keyParentDir.path) {
+                try FileManager.default.createDirectory(at: keyParentDir, withIntermediateDirectories: true)
             }
+            
+            // Generate key source code
+            let keySourceCode = try generator.generateKeySource(encryptionKey: codeEncryptionKey)
+            try keySourceCode.write(to: keySourceURL, atomically: true, encoding: .utf8)
+            
+            print("✅ Generated key source file: \(keySourcePath)")
         } else {
             // Default: Generate code with embedded key
             generatedCode = try generator.generate(credentials: credentials, encryptionKey: codeEncryptionKey)
