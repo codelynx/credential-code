@@ -36,32 +36,28 @@ Edit `.credential-code/credentials.json`:
 ### 3. Generate encrypted code
 
 ```bash
-# Default: external key + .creds file
+# Default: generates both code and .creds file
 credential-code generate
 # Creates: 
-# - Generated/Credentials.swift (encrypted code)
-# - Generated/credentials.creds (runtime credentials)
-# - .credential-code/encryption-key.txt (encryption key)
+# - Generated/Credentials.swift (self-contained with embedded key)
+# - Generated/credentials.creds (requires external key)
+# - .credential-code/encryption-key.txt (key for .creds only)
 
 # Code only (no .creds file)
 credential-code generate --no-generate-creds
-
-# With embedded key (legacy mode)
-credential-code generate --embedded-key --no-generate-creds
 ```
 
 ### 4. Use in your app
 
 ```swift
-// Swift - Default external key mode
-try Credentials.loadKey(from: ".credential-code/encryption-key.txt")
-let apiKey = try Credentials.get(.API_KEY)
-print("Got API key: \(apiKey)")
-
-// Swift - Legacy embedded key mode (requires --embedded-key flag)
+// Swift - Direct usage, no setup needed!
 if let apiKey = Credentials.decrypt(.API_KEY) {
     print("Got API key: \(apiKey)")
 }
+
+// For external key mode (requires --external-key flag)
+try Credentials.loadKey(from: ".credential-code/encryption-key.txt")
+let apiKey = try Credentials.get(.API_KEY)
 ```
 
 ## That's it! 🎉
@@ -93,11 +89,11 @@ Your credential is now:
 
 ### Kotlin/Android
 ```bash
-# Default: external key + .creds file
+# Generate Kotlin code with .creds file
 credential-code generate --language kotlin
 
-# With embedded key (legacy)
-credential-code generate --language kotlin --embedded-key --no-generate-creds
+# Code only (no .creds file)
+credential-code generate --language kotlin --no-generate-creds
 ```
 
 ```kotlin
@@ -123,29 +119,32 @@ credential-code generate --language java
 String apiKey = Credentials.decrypt(CredentialKey.API_KEY);
 ```
 
-## External Key Mode (Default)
+## Key Management
 
-Credential Code now uses external keys by default for better security:
+Credential Code uses a hybrid approach:
 
 ```bash
-# Generate with default settings
+# Default generation
 credential-code generate
 # Creates:
-# - Generated/Credentials.swift (encrypted data)
-# - Generated/credentials.creds (runtime credentials)
-# - .credential-code/encryption-key.txt (base64 key)
-
-# Use custom key location
-credential-code generate --key-file prod.key
+# - Generated/Credentials.swift (self-contained, embedded key)
+# - Generated/credentials.creds (requires external key)
+# - .credential-code/encryption-key.txt (for .creds only)
 ```
 
 **Key Features:**
-- Key is reused across builds (consistent encryption)
-- Key is displayed when first generated
+- Source code: New random key each build (embedded)
+- .creds files: Persistent external key (reused across builds)
+- External key displayed when first generated
 - Plain text base64 format (easy to copy/paste)
-- Both code and .creds files use same encryption
 
-Store the key file securely:
+**External Key Mode (Swift only):**
+```bash
+# Generate Swift code with external key
+credential-code generate --external-key
+```
+
+Store the .creds key file securely:
 - Environment variables
 - AWS Secrets Manager
 - Kubernetes Secrets

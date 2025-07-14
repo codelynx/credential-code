@@ -112,22 +112,22 @@ credential-code generate --creds-output backend/prod.creds --no-generate-code
 
 ### Deployment Patterns
 
-**Pattern 1: External Key File (Default)**
+**Pattern 1: Embedded Key (Default for Code)**
 ```bash
-# Key as separate file (default)
+# Self-contained code with embedded key
 credential-code generate
 ```
 
-**Pattern 2: External Key Source (Compile-time)**
+**Pattern 2: External Key File (Swift Only)**
 ```bash
-# Key as source code (compiled in)
-credential-code generate --external-key-source
+# Swift code with separate key file
+credential-code generate --external-key
 ```
 
-**Pattern 3: Embedded Key (Legacy)**
+**Pattern 3: External Key Source (Swift Only)**
 ```bash
-# For apps with embedded key (old behavior)
-credential-code generate --embedded-key --no-generate-creds
+# Key as source code (compiled separately)
+credential-code generate --external-key-source
 ```
 
 ## File Formats

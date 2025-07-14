@@ -59,21 +59,21 @@ echo "  ✅ Generated swift/Credentials.swift"
 echo "  ✅ Generated .credential-code/encryption-key.txt (encryption key)"
 echo -e "  ${YELLOW}Note: Key is reused across regenerations${NC}"
 
-echo -e "\n${YELLOW}Kotlin (embedded key for demo):${NC}"
-$TOOL_PATH generate --language kotlin --output kotlin/Credentials.kt --embedded-key
-echo "  ✅ Generated kotlin/Credentials.kt (with embedded key)"
+echo -e "\n${YELLOW}Kotlin:${NC}"
+$TOOL_PATH generate --language kotlin --output kotlin/Credentials.kt --no-generate-creds
+echo "  ✅ Generated kotlin/Credentials.kt"
 
-echo -e "\n${YELLOW}Java (embedded key for demo):${NC}"
-$TOOL_PATH generate --language java --output java/Credentials.java --embedded-key
-echo "  ✅ Generated java/Credentials.java (with embedded key)"
+echo -e "\n${YELLOW}Java:${NC}"
+$TOOL_PATH generate --language java --output java/Credentials.java --no-generate-creds
+echo "  ✅ Generated java/Credentials.java"
 
-echo -e "\n${YELLOW}Python (embedded key for demo):${NC}"
-$TOOL_PATH generate --language python --output python/credentials.py --embedded-key
-echo "  ✅ Generated python/credentials.py (with embedded key)"
+echo -e "\n${YELLOW}Python:${NC}"
+$TOOL_PATH generate --language python --output python/credentials.py --no-generate-creds
+echo "  ✅ Generated python/credentials.py"
 
-echo -e "\n${YELLOW}C++ (embedded key for demo):${NC}"
-$TOOL_PATH generate --language c++ --output cpp/credentials.cpp --embedded-key
-echo "  ✅ Generated cpp/credentials.cpp (with embedded key)"
+echo -e "\n${YELLOW}C++:${NC}"
+$TOOL_PATH generate --language c++ --output cpp/credentials.cpp --no-generate-creds
+echo "  ✅ Generated cpp/credentials.cpp"
 
 # Demonstrate external key mode with source code
 echo -e "\n${BLUE}Step 3b: Generating with external key source (Swift example)...${NC}"
@@ -321,7 +321,7 @@ demo-projects/
 │   ├── Credentials.swift      # Generated encrypted code
 │   └── test.swift            # Example usage
 ├── swift-external/           # External key source example
-│   ├── Credentials.swift     # Generated code (no embedded key)
+│   ├── Credentials.swift     # Generated code (external key mode)
 │   ├── CredentialKey.swift  # Key as source code
 │   └── test.swift           # Example usage with external key source
 ├── kotlin/

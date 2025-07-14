@@ -32,11 +32,11 @@ graph LR
 ### ✨ Key Benefits
 
 - 🚫 **No secrets in source code** - Credentials never appear as strings in your binaries
-- 🔄 **Build-time encryption** - Each build uses a unique encryption key
+- 🔄 **Build-time encryption** - Source code uses embedded keys, no external dependencies
 - 🌍 **Multi-language support** - Works with Swift, Kotlin, Java, Python, and C++
 - 🛡️ **Type-safe access** - No magic strings, just compile-time checked enums
 - 📦 **Zero dependencies** - Generated code uses only standard crypto libraries
-- 🔀 **Dual output formats** - Generate code for apps AND .creds files for backends
+- 🔀 **Dual output formats** - Self-contained code for apps, .creds files for runtime config
 
 ## 📚 Documentation
 
@@ -76,19 +76,18 @@ Edit `.credential-code/credentials.json`:
 ```bash
 credential-code generate
 # This creates:
-# - Generated/Credentials.swift (encrypted credentials for apps)
-# - Generated/credentials.creds (encrypted credentials for backends)
-# - .credential-code/encryption-key.txt (encryption key)
+# - Generated/Credentials.swift (self-contained with embedded key)
+# - Generated/credentials.creds (requires external key file)
+# - .credential-code/encryption-key.txt (key for .creds file only)
 ```
 
 ### 5. Use in Your App
 
 ```swift
-// Load the encryption key
-try Credentials.loadKey(from: ".credential-code/encryption-key.txt")
-
-// Access your credentials
-let apiKey = try Credentials.get(.API_KEY)
+// Direct usage - no key loading needed!
+if let apiKey = Credentials.decrypt(.API_KEY) {
+    // Use your API key
+}
 ```
 
 ## 📚 Full Documentation
@@ -101,15 +100,15 @@ let apiKey = try Credentials.get(.API_KEY)
 
 ## Supported Languages
 
-| Language | File | Required Libraries | External Key Support |
-|----------|------|-------------------|---------------------|
-| Swift | `Credentials.swift` | CryptoKit (built-in) | ✅ Full support |
-| Kotlin | `Credentials.kt` | javax.crypto (built-in) | 🔄 Auto-fallback to embedded |
-| Java | `Credentials.java` | javax.crypto (built-in) | 🔄 Auto-fallback to embedded |
-| Python | `credentials.py` | [cryptography](https://pypi.org/project/cryptography/) | 🔄 Auto-fallback to embedded |
-| C++ | `credentials.cpp` | OpenSSL | 🔄 Auto-fallback to embedded |
+| Language | File | Required Libraries | Key Mode |
+|----------|------|-------------------|----------|
+| Swift | `Credentials.swift` | CryptoKit (built-in) | Embedded by default, external available |
+| Kotlin | `Credentials.kt` | javax.crypto (built-in) | Embedded only |
+| Java | `Credentials.java` | javax.crypto (built-in) | Embedded only |
+| Python | `credentials.py` | [cryptography](https://pypi.org/project/cryptography/) | Embedded only |
+| C++ | `credentials.cpp` | OpenSSL | Embedded only |
 
-> **Note:** External key mode is currently only fully supported for Swift. Other languages will automatically use embedded key mode with a warning message. To silence the warning, use `--embedded-key`.
+> **Note:** All languages generate self-contained code with embedded keys by default. Swift additionally supports external key mode with the `--external-key` flag.
 
 ## Usage
 
@@ -226,28 +225,24 @@ const apiKey = decrypt(creds, key, 'API_KEY');
 ```swift
 import Foundation
 
-// Default mode (external key)
-// First, load the key
-try Credentials.loadKey(from: ".credential-code/encryption-key.txt")
-// Or initialize with base64 key string
-try Credentials.initialize(with: "base64EncodedKey...")
-
-// Then access credentials
-let apiKey = try Credentials.get(.API_KEY)
-let dbUrl = try Credentials.get(.DATABASE_URL)
-
-// Legacy mode (embedded key)
+// Default mode (embedded key) - no setup needed!
 if let apiKey = Credentials.decrypt(.API_KEY) {
     let headers = ["Authorization": "Bearer \(apiKey)"]
     // Make API request...
 }
+
+// Use cached decryption for frequently accessed credentials
+let dbUrl = Credentials.decryptCached(.DATABASE_URL)
+
+// External key mode (requires --external-key flag during generation)
+// First, load the key
+try Credentials.loadKey(from: ".credential-code/encryption-key.txt")
+// Then access credentials
+let apiKey = try Credentials.get(.API_KEY)
 ```
 
 #### Kotlin Example
 ```kotlin
-// Note: Kotlin currently uses embedded key mode
-// Generate with: credential-code generate --language kotlin
-
 // Decrypt a credential
 val apiKey = Credentials.decrypt(CredentialKey.API_KEY)
 apiKey?.let { key ->
@@ -271,9 +266,6 @@ if (apiKey != null) {
 
 #### Python Example
 ```python
-# Note: Python currently uses embedded key mode
-# Generate with: credential-code generate --language python
-
 from credentials import Credentials, CredentialKey
 
 # Decrypt a credential

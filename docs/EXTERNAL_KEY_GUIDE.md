@@ -1,18 +1,17 @@
 # External Key Usage Guide
 
-This guide explains how to use the external key feature, which is now the default behavior in Credential Code.
+This guide explains how to use the external key feature for Swift code generation.
 
 ## Overview
 
-Credential Code uses external keys by default for better security. The encryption key is stored separately from your code, allowing for more flexible deployment strategies.
+While Credential Code uses embedded keys by default for source code generation, Swift supports an optional external key mode for enhanced security scenarios where you want to keep the key separate from the code.
 
-> **Note**: External key features are currently fully implemented for Swift only. Support for Kotlin, Java, Python, and C++ is planned for future releases.
+> **Note**: External key features are only available for Swift. Other languages always use embedded keys.
 
-### Default Behavior
-Since external keys are now default, running `credential-code generate` creates:
-- **Generated code file** - Contains only encrypted credentials (safe to commit)
-- **Key file (.credential-code/encryption-key.txt)** - Contains the base64 encryption key (never commit this!)
-- **.creds file** - JSON format for runtime use (safe to commit)
+### When to Use External Keys
+- When you need to rotate keys without recompiling
+- For stricter security requirements
+- When the same key needs to be shared across multiple builds
 
 ### Key Modes
 
@@ -30,26 +29,20 @@ Generates the key as source code:
 
 ## Generating with External Key
 
-### Default Mode (Plain Text Key)
+### External Key Mode (Swift Only)
 ```bash
-# Generate with default external key (this is now the default)
-credential-code generate
+# Generate Swift code with external key file
+credential-code generate --external-key
 # Creates:
-# - Generated/Credentials.swift
-# - Generated/credentials.creds
+# - Generated/Credentials.swift (requires external key)
+# - Generated/credentials.creds (also uses external key)
 # - .credential-code/encryption-key.txt
 
 # Generate with custom key file name
-credential-code generate --key-file my-secret-key.txt
+credential-code generate --external-key --key-file my-secret-key.txt
 
-# Generate without .creds file
-credential-code generate --no-generate-creds
-```
-
-### Embedded Key Mode (Legacy)
-```bash
-# Use the old embedded key behavior
-credential-code generate --embedded-key --no-generate-creds
+# External key without .creds file
+credential-code generate --external-key --no-generate-creds
 ```
 
 ### Source Code Key

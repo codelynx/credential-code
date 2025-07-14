@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Source code generation now uses embedded keys by default (reverted from external key default)
+- .creds files continue to use external keys for runtime configuration
+- This provides a hybrid approach: self-contained code and flexible runtime configuration
+
 ### Fixed
-- Non-Swift languages now automatically fall back to embedded key mode with a warning message instead of throwing an error
-- Added clear documentation about external key support being Swift-only currently
+- Non-Swift languages now work correctly with default settings
+- Updated examples to reflect the new hybrid key management approach
 
 ### Added
 - External key support with `--external-key` flag for enhanced security
@@ -27,15 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for generating both code and .creds files in single command
 
 ### Changed
-- **BREAKING CHANGE**: External key mode is now the default behavior
-  - `credential-code generate` now creates an external key file by default
-  - Key is stored in `.credential-code/encryption-key.txt` as base64 string
-  - Use `--embedded-key` flag to restore old behavior with embedded keys
-  - Key is displayed when first generated for manual backup
-- **BREAKING CHANGE**: .creds file generation is now default
-  - `credential-code generate` now creates both code and .creds files by default
-  - Use `--no-generate-creds` flag to disable .creds generation
-  - Both files use the same encryption key for consistency
+- Source code generation now uses embedded keys by default (reverted from external key default)
+- .creds files continue to use external keys for runtime configuration
+- This provides a hybrid approach: self-contained code and flexible runtime configuration
 - **BREAKING CHANGE**: Simplified JSON structure for `credentials.json`. The `"credentials"` wrapper object has been removed.
   
   **Before:**

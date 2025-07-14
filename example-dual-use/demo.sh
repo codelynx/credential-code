@@ -52,10 +52,11 @@ fi
 
 echo
 echo "=== Summary ==="
-echo "Both Swift methods decrypt the same credentials from different sources:"
-echo "- Method 1: Credentials compiled into the binary (Credentials.swift)"
-echo "- Method 2: Credentials loaded at runtime from Generated/credentials.creds"
+echo "The two methods use different approaches:"
+echo "- Method 1: Self-contained binary with embedded key (Credentials.swift)"
+echo "- Method 2: Runtime configuration with external key (.creds + encryption-key.txt)"
 echo
-echo "The same encryption key (.credential-code/encryption-key.txt) is used by both."
+echo "Method 1 generates a new key each build (embedded in code)"
+echo "Method 2 uses a persistent key for consistent decryption across deployments"
 echo
-echo "This shows Swift can be used for both fixed apps AND runtime configuration!"
+echo "This shows the flexibility of credential-code for different deployment scenarios!"
