@@ -6,6 +6,8 @@ This guide explains how to use the external key feature for enhanced security in
 
 While Credential Code uses embedded keys by default for source code generation, all languages support an optional external key mode for enhanced security scenarios where you want to keep the key separate from the code.
 
+**For backend services and runtime configuration**, see the utility libraries in `/utilities` directory which provide ready-to-use decryption code for `.creds` files.
+
 ### When to Use External Keys
 - When you need to rotate keys without recompiling
 - For stricter security requirements

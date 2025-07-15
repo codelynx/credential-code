@@ -9,6 +9,7 @@ Welcome to the credential-code documentation. This index helps you find the righ
 
 ## Core Documentation
 - [Security Model](SECURITY.md) - Understand the security architecture and threat model
+- [Backend Services Guide](BACKEND_USAGE.md) - Using Credential Code for backend services and runtime configuration
 - [External Key Usage Guide](EXTERNAL_KEY_GUIDE.md) - Complete guide for external key features
 - [Two Use Cases Guide](TWO_USE_CASES.md) - Fixed apps vs configurable backends
 - [Changelog](../CHANGELOG.md) - Version history and breaking changes

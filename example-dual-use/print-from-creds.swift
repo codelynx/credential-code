@@ -1,3 +1,9 @@
+// Example: Print credentials from .creds file (Swift version)
+// This demonstrates the runtime approach in Swift
+//
+// NOTE: This example shows manual decryption for educational purposes.
+// For production use, see the utility library at /utilities/swift/
+
 import Foundation
 import CryptoKit
 

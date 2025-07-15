@@ -2,6 +2,9 @@
 
 # Example 2b: Print credentials from .creds file (Python version)
 # This demonstrates the runtime approach in Python
+#
+# NOTE: This example shows manual decryption for educational purposes.
+# For production use, see the utility library at /utilities/python/
 
 import json
 import base64

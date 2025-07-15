@@ -469,6 +469,32 @@ KEY=$(aws secretsmanager get-secret-value \
   --query SecretString --output text)
 ```
 
+### Working with .creds Files
+
+For runtime decryption of `.creds` files, we provide utility libraries for multiple languages:
+
+```bash
+# Swift
+let decryptor = try CredentialDecryptor(keyPath: ".credential-code/encryption-key.txt")
+let credentials = try decryptor.loadCredentials(from: "Generated/credentials.creds")
+
+# Python
+from credential_code_utility import CredentialDecryptor
+decryptor = CredentialDecryptor('.credential-code/encryption-key.txt')
+credentials = decryptor.load_credentials('Generated/credentials.creds')
+
+# JavaScript
+const { CredentialDecryptor } = require('credential-code-utility');
+const decryptor = new CredentialDecryptor('.credential-code/encryption-key.txt');
+const credentials = decryptor.loadCredentials('Generated/credentials.creds');
+
+# Java
+CredentialDecryptor decryptor = new CredentialDecryptor(Paths.get(".credential-code/encryption-key.txt"));
+Map<String, String> credentials = decryptor.loadCredentials("Generated/credentials.creds");
+```
+
+See the `utilities/` directory for ready-to-use decryption libraries with full documentation for each language.
+
 ## Troubleshooting
 
 ### Common Issues

@@ -53,6 +53,15 @@ swiftc print-from-creds.swift -o print-from-creds
 ./print-from-creds
 ```
 
+**Note:** This example shows manual decryption for educational purposes. For production use, we recommend using the utility library from `/utilities/swift/` which provides a cleaner API:
+
+```swift
+import CredentialCodeUtility
+
+let decryptor = try CredentialDecryptor(keyPath: ".credential-code/encryption-key.txt")
+let credentials = try decryptor.loadCredentials(from: "Generated/credentials.creds")
+```
+
 **Pros:**
 - Can change credentials without recompiling the credential logic
 - Easy to use different credentials per environment
@@ -72,6 +81,13 @@ swiftc print-from-creds.swift -o print-from-creds
 node print-from-creds.js
 ```
 
+**Note:** For production use, see the utility library at `/utilities/javascript/`:
+```javascript
+const { CredentialDecryptor } = require('credential-code-utility');
+const decryptor = new CredentialDecryptor('.credential-code/encryption-key.txt');
+const credentials = decryptor.loadCredentials('Generated/credentials.creds');
+```
+
 ### Python Version
 
 ```bash
@@ -82,7 +98,14 @@ pip install cryptography
 python3 print-from-creds.py
 ```
 
-These show the same .creds file approach works with any language.
+**Note:** For production use, see the utility library at `/utilities/python/`:
+```python
+from credential_code_utility import CredentialDecryptor
+decryptor = CredentialDecryptor('.credential-code/encryption-key.txt')
+credentials = decryptor.load_credentials('Generated/credentials.creds')
+```
+
+These show the same .creds file approach works with any language, and we provide utility libraries to make integration easy.
 
 ## Output
 

@@ -2,6 +2,9 @@
 
 // Example 2: Print credentials from .creds file
 // This demonstrates the runtime approach where credentials are loaded from files
+// 
+// NOTE: This example shows manual decryption for educational purposes.
+// For production use, see the utility library at /utilities/javascript/
 
 const crypto = require('crypto');
 const fs = require('fs');

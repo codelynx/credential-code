@@ -76,49 +76,51 @@ credential-code generate --creds-output backend/prod.creds
 ```
 
 ### Backend Usage (Node.js)
+
+Using the provided utility library (see `/utilities/javascript/`):
+
 ```javascript
 // credentialService.js
-const crypto = require('crypto');
-const fs = require('fs');
+const { CredentialDecryptor } = require('credential-code-utility');
 
-class CredentialService {
-    constructor(keyPath, credsPath) {
-        this.key = Buffer.from(
-            fs.readFileSync(keyPath, 'utf8').trim(), 
-            'base64'
-        );
-        this.creds = JSON.parse(fs.readFileSync(credsPath, 'utf8'));
-    }
-    
-    decrypt(credentialKey) {
-        const encrypted = this.creds.credentials[credentialKey];
-        if (!encrypted) throw new Error(`Unknown credential: ${credentialKey}`);
-        
-        const decipher = crypto.createDecipheriv(
-            'aes-256-gcm', 
-            this.key, 
-            Buffer.from(encrypted.nonce, 'base64')
-        );
-        decipher.setAuthTag(Buffer.from(encrypted.tag, 'base64'));
-        
-        const decrypted = Buffer.concat([
-            decipher.update(Buffer.from(encrypted.data, 'base64')),
-            decipher.final()
-        ]);
-        
-        return decrypted.toString('utf8');
-    }
-}
+// Initialize with key from environment or file
+const decryptor = new CredentialDecryptor(
+    process.env.CREDENTIAL_KEY || '/secure/encryption-key.txt'
+);
 
-// Usage
-const creds = new CredentialService(
-    process.env.KEY_PATH || '/secure/encryption-key.txt',
+// Load and decrypt all credentials
+const credentials = decryptor.loadCredentials(
     process.env.CREDS_PATH || '/app/config/prod.creds'
 );
 
-const apiKey = creds.decrypt('API_KEY');
-const dbUrl = creds.decrypt('DATABASE_URL');
+// Usage
+const apiKey = credentials.API_KEY;
+const dbUrl = credentials.DATABASE_URL;
+
+// Or with caching for better performance
+class CredentialService {
+    constructor() {
+        this.decryptor = new CredentialDecryptor(
+            process.env.CREDENTIAL_KEY || '/secure/encryption-key.txt'
+        );
+        this.credentials = null;
+    }
+    
+    async getCredentials() {
+        if (!this.credentials) {
+            this.credentials = this.decryptor.loadCredentials(
+                process.env.CREDS_PATH || '/app/config/prod.creds'
+            );
+        }
+        return this.credentials;
+    }
+}
 ```
+
+For other languages, see the utility libraries:
+- Python: `/utilities/python/`
+- Java: `/utilities/java/`
+- Swift: `/utilities/swift/`
 
 ## 4. Generate Both Together
 

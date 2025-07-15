@@ -48,19 +48,42 @@ credential-code generate --no-generate-code --creds-output backend/prod.creds
 ```
 
 **Example: Multi-tenant Backend Service**
-```javascript
-// Load key and credentials at runtime
-const key = fs.readFileSync('encryption-key.txt', 'utf8');
-const creds = JSON.parse(fs.readFileSync('client1.creds'));
 
-// Decrypt credentials for specific client
-const apiKey = decrypt(creds, key, 'API_KEY');
+Using the provided utility libraries (see `/utilities` directory):
+
+```javascript
+// Node.js backend with utility library
+const { CredentialDecryptor } = require('credential-code-utility');
+
+// Initialize decryptor with key from environment or file
+const decryptor = new CredentialDecryptor(
+  process.env.CREDENTIAL_KEY || '.credential-code/encryption-key.txt'
+);
+
+// Load credentials for specific client/environment
+const credentials = decryptor.loadCredentials('client1.creds');
+const apiKey = credentials.API_KEY;
+```
+
+Or for Python backends:
+
+```python
+# Python backend with utility library
+from credential_code_utility import CredentialDecryptor
+
+# Key from environment variable (common in containers)
+decryptor = CredentialDecryptor(os.environ['CREDENTIAL_KEY'])
+
+# Load credentials at runtime
+credentials = decryptor.load_credentials('prod.creds')
+database_url = credentials['DATABASE_URL']
 ```
 
 **Benefits:**
 - Different credentials per environment/client
 - Easy to update without recompiling
 - Key and credentials can be stored separately
+- Utility libraries handle all decryption complexity
 
 ## Generating Both Formats
 
@@ -102,6 +125,9 @@ credential-code generate --creds-output backend/prod.creds --no-generate-code
 ### 4. Deploy
 - **App**: Include `Credentials.swift` in build, embed key or load from bundle
 - **Backend**: Deploy `prod.creds` + `encryption-key.txt` via secure configuration
+  - Use provided utility libraries from `/utilities` directory for easy decryption
+  - Store key in environment variables or secret managers
+  - Mount `.creds` files as config volumes in containers
 
 ## Security Considerations
 
