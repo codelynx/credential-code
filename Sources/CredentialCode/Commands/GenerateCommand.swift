@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import CryptoKit
+import CredentialCodeKit
 
 struct GenerateCommand: ParsableCommand {
     static let configuration = CommandConfiguration(

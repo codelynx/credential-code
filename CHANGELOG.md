@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2025-12-03
+
+### Added
+- `CredentialCodeKit` library target for programmatic code generation
+- Public API for all generators (Swift, Kotlin, Java, Python, C++)
+- Library usage documentation in README
 
 ### Changed
 - Source code generation now uses embedded keys by default (reverted from external key default)

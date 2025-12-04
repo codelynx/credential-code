@@ -514,6 +514,59 @@ credential-code init
 pip install cryptography
 ```
 
+## Library Usage (Swift Package)
+
+For programmatic code generation, use `CredentialCodeKit` as a Swift package dependency:
+
+```swift
+// Package.swift
+dependencies: [
+    .package(url: "https://github.com/codelynx/credential-code.git", from: "0.2.0")
+],
+targets: [
+    .target(
+        name: "YourTarget",
+        dependencies: ["CredentialCodeKit"]
+    )
+]
+```
+
+### Generate Code Programmatically
+
+```swift
+import CredentialCodeKit
+import Foundation
+
+// Create a generator for your target language
+let generator = SwiftCodeGenerator()
+
+// Prepare credentials and encryption key
+let credentials = ["API_KEY": "sk-secret", "DB_URL": "postgres://..."]
+let key = Data((0..<32).map { _ in UInt8.random(in: 0...255) })
+
+// Generate encrypted code
+let swiftCode = try generator.generate(credentials: credentials, encryptionKey: key)
+
+// Or use external key mode
+let externalKeyCode = try generator.generateWithExternalKey(credentials: credentials, encryptionKey: key)
+```
+
+### Available Generators
+
+| Generator | Language | Output |
+|-----------|----------|--------|
+| `SwiftCodeGenerator` | Swift | `Credentials.swift` |
+| `KotlinCodeGenerator` | Kotlin | `Credentials.kt` |
+| `JavaCodeGenerator` | Java | `Credentials.java` |
+| `PythonCodeGenerator` | Python | `credentials.py` |
+| `CppCodeGenerator` | C++ | `credentials.cpp` |
+
+All generators conform to the `CodeGenerator` protocol and support:
+- `generate()` - Embedded key mode
+- `generateWithExternalKey()` - External key file mode
+- `generateWithExternalKeySource()` - External key as source code
+- `generateKeySource()` - Generate key provider source file
+
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.

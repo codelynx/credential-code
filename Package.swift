@@ -12,16 +12,25 @@ let package = Package(
         .executable(
             name: "credential-code",
             targets: ["CredentialCode"]
+        ),
+        .library(
+            name: "CredentialCodeKit",
+            targets: ["CredentialCodeKit"]
         )
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0")
     ],
     targets: [
+        .target(
+            name: "CredentialCodeKit",
+            dependencies: []
+        ),
         .executableTarget(
             name: "CredentialCode",
             dependencies: [
-                .product(name: "ArgumentParser", package: "swift-argument-parser")
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                "CredentialCodeKit"
             ]
         ),
         .testTarget(
